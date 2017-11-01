@@ -1,3 +1,5 @@
+"use strict";
+
 var exports = module.exports = {};
 
 exports.shapesForStopTimePair = function (st1, st2, shapes) {
@@ -7,8 +9,8 @@ exports.shapesForStopTimePair = function (st1, st2, shapes) {
 
 function shapesForStopTimePairUsingDist(st1, st2, shapes) {
   // can I assume shapes is sorted? I shall assume that. And regret it.
-  startShapeDistance = st1.shape_dist_traveled;
-  endShapeDistance = st2.shape_dist_traveled;
+  var startShapeDistance = st1.shape_dist_traveled;
+  var endShapeDistance = st2.shape_dist_traveled;
   var startShapeIndex;
   var endShapeIndex;
   for (var i = 1; i < shapes.length; i++){
