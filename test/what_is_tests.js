@@ -3,13 +3,17 @@
 var assert = require('assert');
 var MyCode = require('../some_code');
 
-describe('Array', function() {
-  describe('#indexOf()', function() {
+var testShapesSEPTA = require('./septa_test_shapes.json');
+var testStopsSEPTA = require('./septa_test_stops.json');
+var testStoptimesSEPTA = require('./septa_test_stoptimes.json');
+
+describe('main module', function() {
+  describe('shapesForStopTimePair', function() {
     it('should calculate shapesForStopTimePair correctly', function() {
       assert.deepEqual(
         [66, 67],
         MyCode.shapesForStopTimePair(
-          stopTimesResult[7], stopTimesResult[8], shapeResult[0])
+          stopTimesResult[7], stopTimesResult[8], undefined, shapeResult[0])
         // We will just get the shape_pt_sequence to make the assertion
         // cleaner.
         .map(shape => shape['shape_pt_sequence']));
