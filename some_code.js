@@ -7,7 +7,7 @@ exports.shapesForStopTimePair = function (
   if (useShapeDistance(stopT1, stopT2, shapes)) {
     return shapesForStopTimePairUsingDist(stopT1, stopT2, shapes);
   }
-  return shapesForStopTimePairUsingLatLong(stopT1, stopT2, stops, shapes);
+  return shapesForStopTimePairUsingLatLon(stopT1, stopT2, stops, shapes);
 }
 
 function useShapeDistance (stopT1, stopT2, shapes) {
@@ -45,7 +45,7 @@ function shapesForStopTimePairUsingDist(st1, st2, shapes) {
   return shapes.slice(startShapeIndex, endShapeIndex);
 }
 
-function latLongDistance (lat1, lon1, lat2, lon2) {
+function latLonDistance (lat1, lon1, lat2, lon2) {
   var dy = Math.abs(lat1 - lat2)
   var dx = Math.abs(lon1 - lon2)
   return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2))
@@ -66,12 +66,12 @@ function shapeIndexNearestToStop (stop, shapes) {
   return bestIndex;
 }
 
-function shapesForStopTimePairUsingLatLong (
+function shapesForStopTimePairUsingLatLon (
   stopT1, stopT2, stops, shapes) {
   //iterate through shapes until you find the closest one to stop1
   //until distance from stop1 stops increasing
   var stop1, stop2;
-  for (i = 0; i< stops.length; i++) {
+  for (var i = 0; i< stops.length; i++) {
     if (stops[i].stop_id == stopT1.stop_id) {
       stop1 = stops[i];
     }
@@ -82,8 +82,8 @@ function shapesForStopTimePairUsingLatLong (
   if (stop1 === undefined || stop2 === undefined) {
     throw "I failed to find the two stop times in the stops array";
   }
-  shape1 = shapeIndexNearestToStop(stop1, shapes);
-  shape2 = shapeIndexNearestToStop(stop2, shapes);
+  var shape1 = shapeIndexNearestToStop(stop1, shapes);
+  var shape2 = shapeIndexNearestToStop(stop2, shapes);
   if (shape1 >= shape2) {
     throw "The shapes are out of order.";
   }

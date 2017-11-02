@@ -9,7 +9,7 @@ var testStoptimesSEPTA = require('./septa_test_stoptimes.json');
 
 describe('main module', function() {
   describe('shapesForStopTimePair', function() {
-    it('should calculate shapesForStopTimePair correctly', function() {
+    it('calculates shapesForStopTimePair on NJT data', function() {
       assert.deepEqual(
         [66, 67],
         MyCode.shapesForStopTimePair(
@@ -17,6 +17,15 @@ describe('main module', function() {
         // We will just get the shape_pt_sequence to make the assertion
         // cleaner.
         .map(shape => shape['shape_pt_sequence']));
+    });
+    it('calculates shapesForStopTimePair on SEPTA data', function() {
+      var septaResult = MyCode.shapesForStopTimePair(
+          testStoptimesSEPTA[13], testStoptimesSEPTA[14],
+          testStopsSEPTA, testShapesSEPTA[0]);
+      // The shapes begin at Gravers...
+      assert.deepEqual([-75.201663,40.07738], septaResult[0]['loc']);
+      assert.deepEqual([-75.206885,40.081073],
+                       septaResult[septaResult.length - 1]['loc']);
     });
   });
 });
