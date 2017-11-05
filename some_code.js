@@ -1,4 +1,5 @@
 "use strict";
+var moment = require('moment-timezone');
 
 var exports = module.exports = {};
 
@@ -102,6 +103,15 @@ function segmentDistance (shape1, shape2) {
 function segmentMidpoint (shape1, shape2) {
   return [(shape1.shape_pt_lat + shape2.shape_pt_lat) / 2.0,
           (shape1.shape_pt_lon + shape2.shape_pt_lon) / 2.0]
+}
+
+exports.transitTimeToRealDate = function (timeStr) {
+  // For now we are hard coding a date. And hard coding the fact that
+  // everything is US/Eastern. But at least we are not hard coding whether it
+  // is EST or EDT!
+  var hourMinSec = timeStr.split(':'); // Also assuming this works!
+  return new Date(moment.tz([2017, 10, 5, hourMinSec[0],
+                             hourMinSec[1], hourMinSec[2]], "US/Eastern"));
 }
 
 /*
