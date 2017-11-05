@@ -68,8 +68,6 @@ function shapeIndexNearestToStop (stop, shapes) {
 
 function shapesForStoptimePairUsingLatLon (
   stopT1, stopT2, stops, shapes) {
-  //iterate through shapes until you find the closest one to stop1
-  //until distance from stop1 stops increasing
   var stop1, stop2;
   for (var i = 0; i< stops.length; i++) {
     if (stops[i].stop_id == stopT1.stop_id) {
