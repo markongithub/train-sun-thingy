@@ -114,7 +114,34 @@ exports.transitTimeToRealDate = function (timeStr) {
                              hourMinSec[1], hourMinSec[2]], "US/Eastern"));
 }
 
+function addWhyDoIHaveToWriteThis (x, y) {
+  return x + y;
+}
+
+exports.durationsForShapeList = function (
+  stopT1, stopT2, shapes) {
+  var segmentDistances = new Array(shapes.length - 1);
+  for (var i=0; i < (shapes.length - 1); i++) {
+    segmentDistances[i] =  segmentDistance(shapes[i], shapes[i+1]);
+  }
+  var totalDistance = segmentDistances.reduce(addWhyDoIHaveToWriteThis);
+  var segmentFractions = segmentDistances.map(d => d / totalDistance);
+  var dateA = transitTimeToRealDate(stopT1.departure_time);
+  var dateB = transitTImeToRealDate(stopT2.departure_time);
+  var duration = dateB - dateA;
+  var segmentDurations = segmentFractions.map(f => f * duration);
+  return segmentDurations;
+}
+
 /*
+  var segmentStartTimes = new Array(segmentDurations.length);
+  segmentStartTimes[0] = dateA;
+  for (var i=1; i < segmentDurations.length; i++) {
+    segmentStartTimes[i] = segmentStartTimes[i-1] + segmentDurations[i-1];
+  }
+  return segmentStartTimes;
+}
+
 Divide the segment into one-second segments.
 Maybe they should be milliseconds?
 */
