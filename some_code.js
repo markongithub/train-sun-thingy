@@ -4,13 +4,13 @@ var suncalc = require('suncalc');
 
 var exports = module.exports = {};
 
-exports.shapesForStoptimePair = function (
-  stopT1, stopT2, stops, shapes) {
+function shapesForStoptimePair (stopT1, stopT2, stops, shapes) {
   if (useShapeDistance(stopT1, stopT2, shapes)) {
     return shapesForStoptimePairUsingDist(stopT1, stopT2, shapes);
   }
   return shapesForStoptimePairUsingLatLon(stopT1, stopT2, stops, shapes);
 }
+exports.shapesForStoptimePair = shapesForStoptimePair;
 
 function useShapeDistance (stopT1, stopT2, shapes) {
   if (stopT1.shape_dist_traveled === undefined ||
@@ -116,7 +116,7 @@ function segmentMidpoint (shape1, shape2) {
           (shape1.shape_pt_lon + shape2.shape_pt_lon) / 2.0]
 }
 
-exports.transitTimeToRealDate = function (timeStr) {
+function transitTimeToRealDate (timeStr) {
   // For now we are hard coding a date. And hard coding the fact that
   // everything is US/Eastern. But at least we are not hard coding whether it
   // is EST or EDT!
@@ -124,25 +124,26 @@ exports.transitTimeToRealDate = function (timeStr) {
   return new Date(moment.tz([2017, 10, 5, hourMinSec[0],
                              hourMinSec[1], hourMinSec[2]], "US/Eastern"));
 }
+exports.transitTimeToRealDate = transitTimeToRealDate;
 
 function addWhyDoIHaveToWriteThis (x, y) {
   return x + y;
 }
 
-exports.durationsForShapeList = function (
-  stopT1, stopT2, shapes) {
+function durationsForShapeList (stopT1, stopT2, shapes) {
   var segmentDistances = new Array(shapes.length - 1);
   for (var i=0; i < (shapes.length - 1); i++) {
     segmentDistances[i] =  segmentDistance(shapes[i], shapes[i+1]);
   }
   var totalDistance = segmentDistances.reduce(addWhyDoIHaveToWriteThis);
   var segmentFractions = segmentDistances.map(d => d / totalDistance);
-  var dateA = exports.transitTimeToRealDate(stopT1.departure_time);
-  var dateB = exports.transitTimeToRealDate(stopT2.departure_time);
+  var dateA = transitTimeToRealDate(stopT1.departure_time);
+  var dateB = transitTimeToRealDate(stopT2.departure_time);
   var duration = dateB - dateA;
   var segmentDurations = segmentFractions.map(f => f * duration);
   return segmentDurations;
 }
+exports.durationsForShapeList = durationsForShapeList;
 
 var sunStatus = {
   LEFT: 0,
