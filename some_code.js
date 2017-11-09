@@ -1,5 +1,6 @@
 "use strict";
 var moment = require('moment-timezone');
+var suncalc = require('suncalc');
 
 var exports = module.exports = {};
 
@@ -90,10 +91,20 @@ function shapesForStoptimePairUsingLatLon (
 }
 
 function vehicleHeading (shape1, shape2) {
+  // console.log("heading from " + shape1.loc + " to " + shape2.loc);
   var dy = shape2.shape_pt_lat - shape1.shape_pt_lat;
   var dx = shape2.shape_pt_lon - shape1.shape_pt_lon;
-  return Math.atan2(dy, dx);
+  return atan2ToSuncalc(Math.atan2(dy, dx));
 }
+
+function atan2ToSuncalc (radians) {
+  // Okay. suncalc returns azimuths as radians west of south. Math.atan2 counts
+  // radians north of east and can go negative. Unifying these is hard.
+  // So I need to multiply the atan2 output by -1, then subtract pi/2, then
+  // mod by 2pi. Right?
+  return modJavascriptWhyWhyWhy((-1 * radians) - (Math.PI / 2), Math.PI * 2);
+}
+exports.atan2ToSuncalc = atan2ToSuncalc;
 
 function segmentDistance (shape1, shape2) {
   return latLonDistance (shape1.shape_pt_lat, shape1.shape_pt_lon,
@@ -126,13 +137,52 @@ exports.durationsForShapeList = function (
   }
   var totalDistance = segmentDistances.reduce(addWhyDoIHaveToWriteThis);
   var segmentFractions = segmentDistances.map(d => d / totalDistance);
-  var dateA = transitTimeToRealDate(stopT1.departure_time);
-  var dateB = transitTImeToRealDate(stopT2.departure_time);
+  var dateA = exports.transitTimeToRealDate(stopT1.departure_time);
+  var dateB = exports.transitTimeToRealDate(stopT2.departure_time);
   var duration = dateB - dateA;
   var segmentDurations = segmentFractions.map(f => f * duration);
   return segmentDurations;
 }
 
+var sunStatus = {
+  LEFT: 0,
+  RIGHT: 1,
+  CENTER: 2,
+  DARK: 3
+}
+exports.sunStatus = sunStatus;
+
+function sunStatusForSegment (startDate, endDate, startShape, endShape) {
+  // console.log(startDate + " " + endDate);
+  var sunLocation = segmentMidpoint(startShape, endShape);
+  var sunTime = (startDate.getTime() + endDate.getTime()) / 2;
+  var heading = vehicleHeading(startShape, endShape);
+  // console.log("heading " + heading);
+  var sunData = suncalc.getPosition(sunTime, sunLocation[0], sunLocation[1]);
+  // console.log(sunLocation + " " + sunTime);
+  // console.log(sunData);
+  if (sunData.altitude < 0) return sunStatus.DARK;
+  return relativeToHeading(heading, sunData.azimuth);
+}
+exports.sunStatusForSegment = sunStatusForSegment;
+
+// https://stackoverflow.com/questions/4467539/javascript-modulo-gives-a-negative-result-for-negative-numbers
+function modJavascriptWhyWhyWhy(n, m) {
+        return ((n % m) + m) % m;
+}
+
+function relativeToHeading (heading, azimuth) {
+  var oppositeDirection = (heading + Math.PI) % (Math.PI * 2);
+  // This is highly unlikely but why not.
+  if (azimuth == heading ||
+      azimuth == oppositeDirection) return sunStatus.CENTER;
+  var d = modJavascriptWhyWhyWhy(heading - azimuth, Math.PI * 2);
+  if (d < Math.PI) {
+    return sunStatus.LEFT;
+  }
+  return sunStatus.RIGHT;
+}
+exports.relativeToHeading = relativeToHeading;
 /*
   var segmentStartTimes = new Array(segmentDurations.length);
   segmentStartTimes[0] = dateA;

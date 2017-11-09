@@ -19,6 +19,7 @@
   "homepage": "https://github.com/markongithub/train-sun-thingy#readme",
   "dependencies": {
     "mocha": "^4.0.1",
-    "moment-timezone": "^0.5.14"
+    "moment-timezone": "^0.5.14",
+    "suncalc": "^1.8.0"
   }
 }
