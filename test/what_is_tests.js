@@ -38,11 +38,11 @@ describe('main module', function() {
   });
 
   describe('atan2ToSuncalc', function() {
-    it('converts 0 to 270', function() {
-      assert.equal(Math.PI * 6/4, MyCode.atan2ToSuncalc(0));
+    it('converts 0 to -90', function() {
+      assert.equal(Math.PI * -1/2, MyCode.atan2ToSuncalc(0));
     });
-    it('converts 45 to 225', function() {
-      assert.equal(Math.PI * 5/4, MyCode.atan2ToSuncalc(Math.PI / 4));
+    it('converts 45 to -135', function() {
+      assert.equal(Math.PI * -3/4, MyCode.atan2ToSuncalc(Math.PI / 4));
     });
     it('converts 90 to 180', function() {
       assert.equal(Math.PI, MyCode.atan2ToSuncalc(Math.PI / 2));

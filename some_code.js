@@ -99,11 +99,20 @@ function vehicleHeading (shape1, shape2) {
 
 function atan2ToSuncalc (radians) {
   // Okay. suncalc returns azimuths as radians west of south. Math.atan2 counts
-  // radians north of east and can go negative. Unifying these is hard.
+  // radians north of east. Both can go negative. All my math is wrong.
   // So I need to multiply the atan2 output by -1, then subtract pi/2, then
   // mod by 2pi. Right?
-  return modJavascriptWhyWhyWhy((-1 * radians) - (Math.PI / 2), Math.PI * 2);
+  // return modJavascriptWhyWhyWhy((-1 * radians) - (Math.PI / 2), Math.PI * 2);
+  // Wrong. Fuck.
+  // OK. No mod.
+  if (radians < (Math.PI / 2)) {
+    return ((Math.PI * -1 / 2) - radians);
+  }
+  else {
+    return ((Math.PI * 3 / 2) - radians);
+  }
 }
+
 exports.atan2ToSuncalc = atan2ToSuncalc;
 
 function segmentDistance (shape1, shape2) {
