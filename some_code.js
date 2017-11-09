@@ -184,7 +184,76 @@ function relativeToHeading (heading, azimuth) {
   return sunStatus.RIGHT;
 }
 exports.relativeToHeading = relativeToHeading;
+
+
+function sunTimesForStoptimePair(stoptime1, stoptime2, allStops, allShapes) {
+  var statusTime = new Array(Object.keys(sunStatus).length).fill(0);
+  var shapes = shapesForStoptimePair(stoptime1, stoptime2, allStops, allShapes);
+  var durations = durationsForShapeList(stoptime1, stoptime2, shapes);
+  console.assert(shapes.length == durations.length + 1,
+                 "I suspect I am about to crash.");
+  var startTime = transitTimeToRealDate(stoptime1.departure_time);
+  for (var i = 0; i < durations.length; i++) {
+    var endTime = new Date(startTime.getTime() + durations[i]);
+    var segmentResult = sunStatusForSegment(startTime, endTime,
+                                            shapes[i], shapes[i+1]);
+    console.log(durations[i] + " ms with sunStatus " + segmentResult);
+    statusTime[segmentResult] += Math.round(durations[i]); // nearest ms?
+  }
+  return statusTime;
+}
+exports.sunTimesForStoptimePair = sunTimesForStoptimePair;
+
+function stoptimesAlongRoute(stopID1, stopID2, routeStoptimes,
+                             allStops, allShapes) {
+  var result = [];
+  var onRoute = false;
+  for (var i = 0; i < routeStoptimes.length; i++) {
+    if (routeStoptimes[i].stop_id == stopID2) {
+      if (result.length < 1) throw "Found end stop before first, that is bad.";
+      result.push(routeStoptimes[i]);
+      return result;
+    }
+
+    if (routeStoptimes[i].stop_id == stopID1) {
+      onRoute = true;
+    }
+    if (onRoute) {
+      result.push(routeStoptimes[i]);
+    }
+  }
+  throw ("We didn't find our two stopIDs in the stop times.");
+}
+
+function addObjects(o1, o2) {
+  // This function assumes o1 and o2 have the same keys and kills all humans
+  // if they do not.
+  var result = new Object();
+  var keys =  Object.keys(o1);
+  for (var i=0; i < keys.length; i++) {
+    var key = keys[i];
+    result[key] = o1[key] + o2[key];
+  }
+  return result;
+}
+
+function sunStatusAlongRoute(stopID1, stopID2, routeStoptimes,
+                             allStops, allShapes) {
+  var curStatus = new Array(Object.keys(sunStatus).length).fill(0);
+  var stoptimes = stoptimesAlongRoute(stopID1, stopID2, routeStoptimes,
+                                      allStops, allShapes);
+  if (stoptimes.length < 2) throw "found less than 2 stoptimes on route.";
+  for (var i=1; i < stoptimes.length; i++) {
+    var nextStatus = sunTimesForStoptimePair(stoptimes[i-1], stoptimes[i],
+                                             allStops, allShapes);
+    curStatus = addObjects(curStatus, nextStatus);
+  }
+  return curStatus;
+}
+exports.sunStatusAlongRoute = sunStatusAlongRoute;
+
 /*
+
   var segmentStartTimes = new Array(segmentDurations.length);
   segmentStartTimes[0] = dateA;
   for (var i=1; i < segmentDurations.length; i++) {
