@@ -62,25 +62,31 @@ describe('main module', function() {
   });
 
   describe('relativeToHeading', function() {
+    var NORTH = Math.PI;
+    var EAST = Math.PI * -1 / 2;
+    var SOUTH = 0;
+    var WEST = Math.PI * 1 / 2;
+    var NORTHWEST = Math.PI * 3 / 4;
+
     it('agrees north is left of east', function() {
       assert.equal(MyCode.sunStatus.LEFT,
-                   MyCode.relativeToHeading(Math.PI / 2, 0));
+                   MyCode.relativeToHeading(EAST, NORTH));
     });
     it('agrees south is right of east', function() {
       assert.equal(MyCode.sunStatus.RIGHT,
-                   MyCode.relativeToHeading(Math.PI / 2, Math.PI));
+                   MyCode.relativeToHeading(EAST, SOUTH));
     });
     it('agrees north is right of northwest', function() {
       assert.equal(MyCode.sunStatus.RIGHT,
-                   MyCode.relativeToHeading(Math.PI * 7/4, 0));
+                   MyCode.relativeToHeading(NORTHWEST, NORTH));
     });
     it('agrees north is right of west', function() {
       assert.equal(MyCode.sunStatus.RIGHT,
-                   MyCode.relativeToHeading(Math.PI * 3/2, 0));
+                   MyCode.relativeToHeading(WEST, NORTH));
     });
     it('agrees north is opposite south', function() {
       assert.equal(MyCode.sunStatus.CENTER,
-                   MyCode.relativeToHeading(Math.PI, 0));
+                   MyCode.relativeToHeading(SOUTH, NORTH));
     });
   });
 
