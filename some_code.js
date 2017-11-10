@@ -262,17 +262,3 @@ function sunStatusAlongRoute(stopID1, stopID2, routeStoptimes,
   return curStatus;
 }
 exports.sunStatusAlongRoute = sunStatusAlongRoute;
-
-/*
-
-  var segmentStartTimes = new Array(segmentDurations.length);
-  segmentStartTimes[0] = dateA;
-  for (var i=1; i < segmentDurations.length; i++) {
-    segmentStartTimes[i] = segmentStartTimes[i-1] + segmentDurations[i-1];
-  }
-  return segmentStartTimes;
-}
-
-Divide the segment into one-second segments.
-Maybe they should be milliseconds?
-*/
