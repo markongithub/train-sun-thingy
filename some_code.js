@@ -182,6 +182,7 @@ function modJavascriptWhyWhyWhy(n, m) {
 }
 
 function relativeToHeading (heading, azimuth) {
+  // console.log("heading " + heading + " sun " + azimuth);
   var oppositeDirection = (heading + Math.PI) % (Math.PI * 2);
   // This is highly unlikely but why not.
   if (azimuth == heading ||
@@ -206,7 +207,8 @@ function sunTimesForStoptimePair(stoptime1, stoptime2, allStops, allShapes) {
     var endTime = new Date(startTime.getTime() + durations[i]);
     var segmentResult = sunStatusForSegment(startTime, endTime,
                                             shapes[i], shapes[i+1]);
-    console.log(durations[i] + " ms with sunStatus " + segmentResult);
+    // console.log(durations[i] + " ms with sunStatus " + segmentResult);
+
     statusTime[segmentResult] += Math.round(durations[i]); // nearest ms?
   }
   return statusTime;
