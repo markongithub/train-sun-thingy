@@ -32,7 +32,7 @@ describe('main module', function() {
   describe('transitTimeToRealDate', function() {
     it('does what I want it to do', function() {
       var expected = new Date(2017, 10, 5, 16, 55, 0); // expressed in UTC
-      var actual = MyCode.transitTimeToRealDate("11:55:00");
+      var actual = MyCode.transitTimeToRealDate(2017, 11, 5, "11:55:00");
       assert.equal(expected.getTime(), actual.getTime());
     });
   });
@@ -97,9 +97,9 @@ describe('main module', function() {
         testStopsSEPTA, testShapesSEPTA[0]);
       var duration = MyCode.durationsForShapeList(
         testStoptimesSEPTA[13], testStoptimesSEPTA[14],
-        shapes)[0]
+        shapes, 2017, 11, 5)[0]
       var startTime = MyCode.transitTimeToRealDate(
-        testStoptimesSEPTA[13].departure_time);
+        2017, 11, 5, testStoptimesSEPTA[13].departure_time);
       var endTime = new Date(startTime.getTime() + duration);
       var result = MyCode.sunStatusForSegment(
         startTime, endTime, shapes[0], shapes[1]);
@@ -111,7 +111,7 @@ describe('main module', function() {
     it('makes a simpler test than the last one', function() {
       var result = MyCode.sunTimesForStoptimePair(
         testStoptimesSEPTA[13], testStoptimesSEPTA[14],
-        testStopsSEPTA, testShapesSEPTA[0]);
+        testStopsSEPTA, testShapesSEPTA[0], 2017, 11, 5);
       assert.deepEqual([120000,0,0,0], result);
     });
   });
@@ -119,23 +119,25 @@ describe('main module', function() {
   describe('sunStatusAlongRoute', function() {
     it('works for adjacent stops', function() {
       var result = MyCode.sunStatusAlongRoute(
-        90719, 90720, testStoptimesSEPTA, testStopsSEPTA, testShapesSEPTA[0]);
+        90719, 90720, testStoptimesSEPTA, testStopsSEPTA, testShapesSEPTA[0],
+        2017, 11, 5);
       assert.deepEqual([120000,0,0,0], result);
     });
     it('works for more stops', function() {
       var result = MyCode.sunStatusAlongRoute(
-        90718, 90720, testStoptimesSEPTA, testStopsSEPTA, testShapesSEPTA[0]);
+        90718, 90720, testStoptimesSEPTA, testStopsSEPTA, testShapesSEPTA[0],
+        2017, 11, 5);
       assert.deepEqual([179999,0,0,0], result);
     });
     it('still works on some NJT data', function() {
       var result = MyCode.sunStatusAlongRoute(
-        145, 87, stoptimesResult, undefined, shapeResult[0]);
+        145, 87, stoptimesResult, undefined, shapeResult[0], 2017, 11, 5);
       assert.deepEqual([360000,0,0,0], result); // precision still bad here
     });
 
     it('works all the way to NYP', function() {
       var result = MyCode.sunStatusAlongRoute(
-        145, 105, stoptimesResult, undefined, shapeResult[0]);
+        145, 105, stoptimesResult, undefined, shapeResult[0], 2017, 11, 5);
       assert.deepEqual([379941,2080063,0,0], result);
     });
 

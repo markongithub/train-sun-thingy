@@ -126,12 +126,11 @@ function segmentMidpoint (shape1, shape2) {
           (shape1.shape_pt_lon + shape2.shape_pt_lon) / 2.0]
 }
 
-function transitTimeToRealDate (timeStr) {
-  // For now we are hard coding a date. And hard coding the fact that
-  // everything is US/Eastern. But at least we are not hard coding whether it
-  // is EST or EDT!
+function transitTimeToRealDate (year, month, day, timeStr) {
+  // If we pass in a time that's after midnight, this code kills all humans.
+  if (day === undefined) throw new Error("You didn't pass in a day. Jerk.");
   var hourMinSec = timeStr.split(':'); // Also assuming this works!
-  return new Date(moment.tz([2017, 10, 5, hourMinSec[0],
+  return new Date(moment.tz([year, month - 1, day, hourMinSec[0],
                              hourMinSec[1], hourMinSec[2]], "US/Eastern"));
 }
 exports.transitTimeToRealDate = transitTimeToRealDate;
@@ -140,15 +139,15 @@ function addWhyDoIHaveToWriteThis (x, y) {
   return x + y;
 }
 
-function durationsForShapeList (stopT1, stopT2, shapes) {
+function durationsForShapeList (stopT1, stopT2, shapes, year, month, day) {
   var segmentDistances = new Array(shapes.length - 1);
   for (var i=0; i < (shapes.length - 1); i++) {
     segmentDistances[i] =  segmentDistance(shapes[i], shapes[i+1]);
   }
   var totalDistance = segmentDistances.reduce(addWhyDoIHaveToWriteThis);
   var segmentFractions = segmentDistances.map(d => d / totalDistance);
-  var dateA = transitTimeToRealDate(stopT1.departure_time);
-  var dateB = transitTimeToRealDate(stopT2.departure_time);
+  var dateA = transitTimeToRealDate(year, month, day, stopT1.departure_time);
+  var dateB = transitTimeToRealDate(year, month, day, stopT2.departure_time);
   var duration = dateB - dateA;
   var segmentDurations = segmentFractions.map(f => f * duration);
   return segmentDurations;
@@ -197,13 +196,16 @@ function relativeToHeading (heading, azimuth) {
 exports.relativeToHeading = relativeToHeading;
 
 
-function sunTimesForStoptimePair(stoptime1, stoptime2, allStops, allShapes) {
+function sunTimesForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
+                                 year, month, day) {
   var statusTime = new Array(Object.keys(sunStatus).length).fill(0);
   var shapes = shapesForStoptimePair(stoptime1, stoptime2, allStops, allShapes);
-  var durations = durationsForShapeList(stoptime1, stoptime2, shapes);
+  var durations = durationsForShapeList(stoptime1, stoptime2, shapes,
+                                        year, month, day);
   console.assert(shapes.length == durations.length + 1,
                  "I suspect I am about to crash.");
-  var startTime = transitTimeToRealDate(stoptime1.departure_time);
+  var startTime = transitTimeToRealDate(
+    year, month, day, stoptime1.departure_time);
   for (var i = 0; i < durations.length; i++) {
     var endTime = new Date(startTime.getTime() + durations[i]);
     var segmentResult = sunStatusForSegment(startTime, endTime,
@@ -250,14 +252,14 @@ function addObjects(o1, o2) {
 }
 
 function sunStatusAlongRoute(stopID1, stopID2, routeStoptimes,
-                             allStops, allShapes) {
+                             allStops, allShapes, year, month, day) {
   var curStatus = new Array(Object.keys(sunStatus).length).fill(0);
   var stoptimes = stoptimesAlongRoute(stopID1, stopID2, routeStoptimes,
                                       allStops, allShapes);
   if (stoptimes.length < 2) throw "found less than 2 stoptimes on route.";
   for (var i=1; i < stoptimes.length; i++) {
-    var nextStatus = sunTimesForStoptimePair(stoptimes[i-1], stoptimes[i],
-                                             allStops, allShapes);
+    var nextStatus = sunTimesForStoptimePair(
+      stoptimes[i-1], stoptimes[i], allStops, allShapes, year, month, day);
     curStatus = addObjects(curStatus, nextStatus);
   }
   return curStatus;
