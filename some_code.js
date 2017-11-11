@@ -1,4 +1,5 @@
 "use strict";
+var gtfs = require('gtfs');
 var moment = require('moment-timezone');
 var suncalc = require('suncalc');
 
@@ -262,3 +263,33 @@ function sunStatusAlongRoute(stopID1, stopID2, routeStoptimes,
   return curStatus;
 }
 exports.sunStatusAlongRoute = sunStatusAlongRoute;
+
+// if I have a tripID
+// I can get shapes
+// I can get stoptimes
+// from the stoptimes I can get stops
+
+function getStoptimesThenStopsP (agencyKey, tripID) {
+  // This is my first ever attempt at JS promises. I am sorry.
+  return gtfs.getStoptimes({agency_key: agencyKey, trip_id: tripID})
+  .then(stoptimes => {
+    console.log("Got " + stoptimes.length + " stoptimes.");
+    var stopIDs = stoptimes.map(o => o.stop_id);
+    return gtfs.getStops({agency_key: agencyKey, stop_id: {$in: stopIDs}})
+    .then(stops => [stoptimes, stops]);
+  });
+}
+
+function getAllTripDataP (agencyKey, tripID) {
+  var p1 = gtfs.getShapes({agency_key: agencyKey, trip_id: tripID});
+  var p2 = getStoptimesThenStopsP(agencyKey, tripID);
+  return Promise.all([p1, p2]).then(results => {
+    if ((results.length != 2) || (results[1].length != 2)) {
+      throw "I got back a weird array size from GTFS."
+    }
+    return { shapes: results[0],
+             stoptimes: results[1][0],
+             stops: results[1][1] };
+  });
+}
+exports.getAllTripDataP = getAllTripDataP;
