@@ -213,6 +213,7 @@ function sunTimesForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
     // console.log(durations[i] + " ms with sunStatus " + segmentResult);
 
     statusTime[segmentResult] += Math.round(durations[i]); // nearest ms?
+    startTime = endTime;
   }
   return statusTime;
 }
