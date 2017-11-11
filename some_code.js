@@ -164,6 +164,17 @@ var sunStatus = {
 }
 exports.sunStatus = sunStatus;
 
+function sunnySideVerdict(statuses) {
+  if (statuses[sunStatus.LEFT] == statuses[sunStatus.RIGHT]) {
+    return "It does not matter which side of the vehicle you sit on."
+  }
+  else if (statuses[sunStatus.LEFT] > statuses[sunStatus.RIGHT]) {
+    return "This trip has more sunlight on the left side of the vehicle.";
+  }
+  else return "This trip has more sunlight on the right side of the vehicle.";
+}
+exports.sunnySideVerdict = sunnySideVerdict;
+
 function sunStatusForSegment (startDate, endDate, startShape, endShape) {
   // console.log(startDate + " " + endDate);
   var sunLocation = segmentMidpoint(startShape, endShape);
@@ -299,3 +310,13 @@ function getAllTripDataP (agencyKey, tripID) {
 }
 exports.getAllTripDataP = getAllTripDataP;
 
+function dateRange(startDate, days) {
+  var result = new Array(days);
+  var nextDate = startDate;
+  for (var i=0; i < days; i++) {
+    result[i] = new Date(nextDate);
+    nextDate.setDate(nextDate.getDate() + 1);
+  }
+  return result;
+}
+exports.dateRange = dateRange;
