@@ -166,12 +166,12 @@ exports.sunStatus = sunStatus;
 
 function sunnySideVerdict(statuses) {
   if (statuses[sunStatus.LEFT] == statuses[sunStatus.RIGHT]) {
-    return "It does not matter which side of the vehicle you sit on."
+    return "it does not matter which side of the vehicle you sit on."
   }
   else if (statuses[sunStatus.LEFT] > statuses[sunStatus.RIGHT]) {
-    return "This trip has more sunlight on the left side of the vehicle.";
+    return "this trip has more sunlight on the left side of the vehicle.";
   }
-  else return "This trip has more sunlight on the right side of the vehicle.";
+  else return "this trip has more sunlight on the right side of the vehicle.";
 }
 exports.sunnySideVerdict = sunnySideVerdict;
 
@@ -289,7 +289,6 @@ function getStoptimesThenStopsP (agencyKey, tripID) {
   // This is my first ever attempt at JS promises. I am sorry.
   return gtfs.getStoptimes({agency_key: agencyKey, trip_id: tripID})
   .then(stoptimes => {
-    console.log("Got " + stoptimes.length + " stoptimes.");
     var stopIDs = stoptimes.map(o => o.stop_id);
     return gtfs.getStops({agency_key: agencyKey, stop_id: {$in: stopIDs}})
     .then(stops => [stoptimes, stops]);
@@ -303,9 +302,13 @@ function getAllTripDataP (agencyKey, tripID) {
     if ((results.length != 2) || (results[1].length != 2)) {
       throw "I got back a weird array size from GTFS."
     }
-    return { shapes: results[0],
-             stoptimes: results[1][0],
-             stops: results[1][1] };
+    const output = { shapes: results[0],
+                     stoptimes: results[1][0],
+                     stops: results[1][1] };
+    console.log(
+      output.shapes[0].length + " shapes, " + output.stoptimes.length +
+      " stoptimes, " + output.stops.length + " stops");
+    return output;
   });
 }
 exports.getAllTripDataP = getAllTripDataP;
@@ -320,3 +323,38 @@ function dateRange(startDate, days) {
   return result;
 }
 exports.dateRange = dateRange;
+
+function getYearOfTripsP(agencyKey, tripID, startDate, fromStop, toStop) {
+  return getAllTripDataP(agencyKey, tripID).then(tripData => {
+    var dates = dateRange(startDate, 365); // Sucks if it's a leap year.
+    var result = new Array(365);
+    for (var i=0; i< dates.length; i++) {
+      result[i] = {
+        date: dates[i],
+        sunStatus : sunStatusAlongRoute(
+          fromStop, toStop, tripData.stoptimes, tripData.stops, tripData.shapes[0],
+          dates[i])};
+    }
+    return result;
+  });
+}
+exports.getYearOfTripsP = getYearOfTripsP;
+
+function formatMultiDayResults(results) {
+  var curVerdict = sunnySideVerdict(results[0].sunStatus);
+  var segmentStarted = results[0].date.toDateString();
+  var output = "";
+  for (var i=1; i < results.length; i++) {
+    var newVerdict = sunnySideVerdict(results[i].sunStatus);
+    if ((i == (results.length - 1)) || (newVerdict != curVerdict)) {
+      var newOutput = (
+        "From " + segmentStarted + " through " +
+        results[i-1].date.toDateString() + ", " + curVerdict + " ");
+      output += newOutput;
+      curVerdict = newVerdict;
+      segmentStarted = results[i].date.toDateString();
+    }
+  }
+  return output;
+}
+exports.formatMultiDayResults = formatMultiDayResults;
