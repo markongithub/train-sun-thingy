@@ -1,0 +1,24 @@
+const gtfs = require('gtfs');
+const mongoose = require('mongoose');
+
+const agencyKey = process.argv[2];
+const filePath = process.argv[3];
+
+const config = {
+  // I could make this a CLI option too. But not now.
+  mongoUrl: 'mongodb://localhost:27017/',
+  agencies: [
+    {
+      agency_key: agencyKey,
+      path: filePath,
+    }
+  ]
+};
+
+gtfs.import(config)
+.then(() => {
+  console.log('Import Successful');
+})
+.catch(err => {
+  console.error(err);
+});
