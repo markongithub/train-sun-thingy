@@ -358,3 +358,36 @@ function formatMultiDayResults(results) {
   return output;
 }
 exports.formatMultiDayResults = formatMultiDayResults;
+
+function getServicesForDateP(agencyKey, dateObj) {
+  const dateYYYYMMDD = [dateObj.getFullYear(),dateObj.getMonth() + 1,
+                        dateObj.getDate()].join('');
+  console.log(dateYYYYMMDD);
+  const dayOfWeekLC = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday',
+                       'friday', 'saturday'][dateObj.getDay()]
+  var calendarReq = {
+    agency_key: agencyKey, start_date: {$lte: dateYYYYMMDD},
+    end_date: {$gte: dateYYYYMMDD}};
+  calendarReq[dayOfWeekLC] = 1;
+  const calendarP = gtfs.getCalendars(calendarReq);
+  const calendarDateP = gtfs.getCalendarDates({
+    agency_key: agencyKey, date: dateYYYYMMDD});
+  return Promise.all([calendarP, calendarDateP]).then(results => {
+    var services = new Set(results[0].map(o => o.service_id));
+    for (var i=0; i<results[1].length; i++) {
+      const exceptionService = results[1][i].service_id;
+      if (results[1][i].exception_type == 1) {
+        // console.log("Calendar exception: adding service " + exceptionService);
+        services.add(exceptionService);
+      }
+      else if (results[1][i].exception_type == 2) {
+        // console.log("Calendar exception: deleting service " + exceptionService);
+        services.delete(exceptionService);
+      }
+      else console.error("Invalid exception_type: " +
+                         results[1][i].exception_type);
+    }
+    return Array.from(services);
+  });
+}
+exports.getServicesForDateP = getServicesForDateP;
