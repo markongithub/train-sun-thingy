@@ -394,7 +394,10 @@ exports.getServicesForDateP = getServicesForDateP;
 
 function getStoptimesForStopAndDateP(agencyKey, stopID, dateObj) {
   return getServicesForDateP(agencyKey, dateObj).then(serviceIDs => {
-    return gtfs.getStopTimes({
+    if (serviceIDs.length < 1) {
+      console.error("No service for this date. Or it is SEPTA's fault.");
+    }
+    return gtfs.getStoptimes({
       agency_key: agencyKey,
       stop_id: stopID,
       service_id: {
@@ -404,3 +407,25 @@ function getStoptimesForStopAndDateP(agencyKey, stopID, dateObj) {
   });
 }
 exports.getStoptimesForStopAndDateP = getStoptimesForStopAndDateP;
+
+function combineStoptimeWithTripP(stoptime) {
+  const tripsP = gtfs.getTrips({
+    agency_key: stoptime.agency_key,
+    trip_id: stoptime.trip_id})
+  return tripsP.then(trips => {
+    console.assert(trips.length == 1,
+                  "I expected to get only one trip back. This is bad.");
+    const trip = trips[0];
+    return { trip_id: trip.trip_id,
+             departure_time: stoptime.departure_time,
+             trip_headsign: trip.trip_headsign,
+             block_id: trip.block_id }
+  });
+}
+
+function getDeparturesForStopAndDateP(agencyKey, stopID, dateObj) {
+  const stoptimesP = getStoptimesForStopAndDateP(agencyKey, stopID, dateObj);
+  return stoptimesP.then(
+    stoptimes => Promise.all(stoptimes.map(combineStoptimeWithTripP)));
+}
+exports.getDeparturesForStopAndDateP = getDeparturesForStopAndDateP;
