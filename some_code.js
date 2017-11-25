@@ -391,3 +391,16 @@ function getServicesForDateP(agencyKey, dateObj) {
   });
 }
 exports.getServicesForDateP = getServicesForDateP;
+
+function getStoptimesForStopAndDateP(agencyKey, stopID, dateObj) {
+  return getServicesForDateP(agencyKey, dateObj).then(serviceIDs => {
+    return gtfs.getStopTimes({
+      agency_key: agencyKey,
+      stop_id: stopID,
+      service_id: {
+        $in: serviceIDs
+      }
+    });
+  });
+}
+exports.getStoptimesForStopAndDateP = getStoptimesForStopAndDateP;
