@@ -429,3 +429,22 @@ function getDeparturesForStopAndDateP(agencyKey, stopID, dateObj) {
     stoptimes => Promise.all(stoptimes.map(combineStoptimeWithTripP)));
 }
 exports.getDeparturesForStopAndDateP = getDeparturesForStopAndDateP;
+
+function lookupStopNameP(agencyKey, stopID) {
+  return gtfs.getStops({agency_key: agencyKey, stop_id: stopID}).then(stops => {
+    console.assert(stops.length == 1, "I expected exactly one stop.");
+    return {stop_id: stops[0].stop_id, stop_name: stops[0].stop_name};
+  });
+}
+
+function getSubsequentStopsP(agencyKey, stopID, tripID) {
+  return gtfs.getStoptimes({agency_key: agencyKey,
+                            trip_id: tripID}).then(stoptimes => {
+    const startIndex = stoptimes.findIndex(st => st.stop_id == stopID);
+    const remainingStoptimes = stoptimes.slice(startIndex + 1);
+    const stopPromises = remainingStoptimes.map(
+      st => lookupStopNameP(agencyKey, st.stop_id));
+    return Promise.all(stopPromises);
+  });
+}
+exports.getSubsequentStopsP = getSubsequentStopsP;
