@@ -434,9 +434,16 @@ function stopIDAndName(stop) {
   return {stop_id: stop.stop_id, stop_name: stop.stop_name};
 }
 
+function sortByStopName(stops) {
+  return stops.sort(function (a, b) {
+    if (a.stop_name < b.stop_name) return -1;
+    if (a.stop_name > b.stop_name) return 1;
+    return 0;
+  });
+}
 function getAllStopsP(agencyKey) {
   return gtfs.getStops({agency_key: agencyKey}).then(
-    stops => stops.map(stopIDAndName));
+    stops => sortByStopName(stops.map(stopIDAndName)));
 }
 exports.getAllStopsP = getAllStopsP;
 
