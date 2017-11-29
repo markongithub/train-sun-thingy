@@ -448,3 +448,9 @@ function getSubsequentStopsP(agencyKey, stopID, tripID) {
   });
 }
 exports.getSubsequentStopsP = getSubsequentStopsP;
+
+function getAgencyKeysP() {
+  return gtfs.getAgencies().then(agencies => Array.from(new Set(agencies.map(
+    a => a.agency_key))));
+}
+exports.getAgencyKeysP = getAgencyKeysP;
