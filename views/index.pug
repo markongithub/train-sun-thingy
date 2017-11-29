@@ -4,13 +4,20 @@ html
   body
     h2 Choose your agency.
     select(id="agencyKey")
+      option
       each agencyKey in agencyKeys
         option #{agencyKey}
     h2 Then choose your date.
     select(id="date")
+      option(id="20171128") Today November 28 hahaha
     h2 Then choose your source stop.
     select(id="sourceStop")
+      option
     h2 Then choose your trip.
     select(id="trip")
+      option
     h2 Then choose your destination.
     select(id="destinationStop")
+      option
+  script(src="https://code.jquery.com/jquery-3.2.1.min.js")
+  script(src="/client.js")
