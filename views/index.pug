@@ -1,0 +1,16 @@
+html
+  head
+    title= title
+  body
+    h2 Choose your agency.
+    select(id="agencyKey")
+      each agencyKey in agencyKeys
+        option #{agencyKey}
+    h2 Then choose your date.
+    select(id="date")
+    h2 Then choose your source stop.
+    select(id="sourceStop")
+    h2 Then choose your trip.
+    select(id="trip")
+    h2 Then choose your destination.
+    select(id="destinationStop")
