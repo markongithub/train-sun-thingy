@@ -23,4 +23,10 @@ app.get('/stops', function (req, res) {
    MyCode.getAllStopsP(req.query.agencyKey).then(result => res.send(result));
 })
 
+app.get('/trips', function (req, res) {
+   MyCode.getDeparturesForStopAndDateAjaxP(
+     req.query.agencyKey, req.query.sourceStop, req.query.date).then(
+       result => res.send(result));
+})
+
 app.listen(8080, () => console.log('Example app listening on port 8080!'))
