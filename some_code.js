@@ -395,7 +395,7 @@ exports.getServicesForDateP = getServicesForDateP;
 function getStoptimesForStopAndDateP(agencyKey, stopID, dateObj) {
   return getServicesForDateP(agencyKey, dateObj).then(serviceIDs => {
     if (serviceIDs.length < 1) {
-      console.error("No service for this date. Or it is SEPTA's fault.");
+      console.error("No service for this date: " + dateObj + " Or it is SEPTA's fault.");
     }
     return gtfs.getStoptimes({
       agency_key: agencyKey,
@@ -422,6 +422,32 @@ function combineStoptimeWithTripP(stoptime) {
              block_id: trip.block_id }
   });
 }
+
+function formatAjaxDeparture(departure) {
+  var departure_desc = departure.departure_time;
+  if (departure.block_id) departure_desc += (" #" + departure.block_id);
+  if (departure.trip_headsign) departure_desc += (
+    " toward " + departure.trip_headsign);
+  return { trip_id: departure.trip_id,
+           departure_desc: departure_desc }
+}
+
+function sortByDepartureDesc(departures) {
+  return departures.sort(function (a, b) {
+    if (a.departure_desc < b.departure_desc) return -1;
+    if (a.departure_desc > b.departure_desc) return 1;
+    return 0;
+  });
+}
+function getDeparturesForStopAndDateAjaxP(agencyKey, stopID, date8601) {
+  const dateObj = new Date(date8601);
+  return getDeparturesForStopAndDateP(agencyKey, stopID, dateObj).then(
+    departures => {
+      const output = sortByDepartureDesc(departures.map(formatAjaxDeparture));
+      return output;
+    });
+}
+exports.getDeparturesForStopAndDateAjaxP = getDeparturesForStopAndDateAjaxP;
 
 function getDeparturesForStopAndDateP(agencyKey, stopID, dateObj) {
   const stoptimesP = getStoptimesForStopAndDateP(agencyKey, stopID, dateObj);
