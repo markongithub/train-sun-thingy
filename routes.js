@@ -29,4 +29,10 @@ app.get('/trips', function (req, res) {
        result => res.send(result));
 })
 
+app.get('/destinations', function (req, res) {
+   MyCode.getSubsequentStopsP(
+     req.query.agencyKey, req.query.sourceStop, req.query.trip).then(
+       result => res.send(result));
+})
+
 app.listen(8080, () => console.log('Example app listening on port 8080!'))

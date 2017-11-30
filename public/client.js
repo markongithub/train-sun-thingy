@@ -38,4 +38,22 @@ function repopulateTripsFromDateAndSourceStop() {
 }
 $('#sourceStop').change(repopulateTripsFromDateAndSourceStop);
 
+function repopulateDestinationsFromTrip() {
+  const agencyKey = $("#agencyKey").val();
+  const sourceStop = $("#sourceStop").val();
+  const destStops = $("#destinationStop");
+  const trip = $("#trip").val();
+  emptySelect(destStops);
+  $.getJSON("/destinations",
+            {agencyKey: agencyKey, trip: trip, sourceStop: sourceStop},
+            function(data) {
+
+    for (var i=0; i < data.length; i++) {
+      var newOpt = new Option(data[i].stop_name, data[i].stop_id);
+      destStops.append(newOpt);
+    }
+  });
+}
+$('#trip').change(repopulateDestinationsFromTrip);
+
 console.log("We definitely ran the client.js once.");
