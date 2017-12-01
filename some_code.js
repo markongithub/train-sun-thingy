@@ -385,6 +385,14 @@ function getServicesForDateP(agencyKey, dateObj) {
     agency_key: agencyKey, start_date: {$lte: dateYYYYMMDD},
     end_date: {$gte: dateYYYYMMDD}};
   calendarReq[dayOfWeekLC] = 1;
+  if (agencyKey == "septa-rail") {
+    // We have to special case this stuff because of leading spaces that
+    // violate the GTFS spec. Philadelphia freedom, I love you. Yes I do.
+    calendarReq = {agency_key: agencyKey};
+    calendarReq[" start_date"] = {$lte: dateYYYYMMDD};
+    calendarReq[" end_date"] =  {$gte: dateYYYYMMDD};
+    calendarReq[" " + dayOfWeekLC] = "1";
+  }
   const calendarP = gtfs.getCalendars(calendarReq);
   const calendarDateP = gtfs.getCalendarDates({
     agency_key: agencyKey, date: dateYYYYMMDD});
