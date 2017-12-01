@@ -101,7 +101,7 @@ describe('main module', function() {
         testStopsSEPTA, testShapesSEPTA[0]);
       var duration = MyCode.durationsForShapeList(
         testStoptimesSEPTA[13], testStoptimesSEPTA[14],
-        shapes, defaultDate)[0]
+        shapes, defaultDate, defaultTimeZone)[0]
       var startTime = MyCode.transitTimeToRealDate(
         defaultDate, testStoptimesSEPTA[13].departure_time, defaultTimeZone);
       var endTime = new Date(startTime.getTime() + duration);
