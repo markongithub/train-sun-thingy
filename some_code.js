@@ -30,6 +30,8 @@ function shapesForStoptimePairUsingDist(st1, st2, shapes) {
   // can I assume shapes is sorted? I shall assume that. And regret it.
   var startShapeDistance = st1.shape_dist_traveled;
   var endShapeDistance = st2.shape_dist_traveled;
+  // console.log("Looking for shapes between " +
+  //          [startShapeDistance, endShapeDistance]);
   var startShapeIndex;
   var endShapeIndex;
   for (var i = 1; i < shapes.length; i++){
@@ -126,14 +128,15 @@ function segmentMidpoint (shape1, shape2) {
           (shape1.shape_pt_lon + shape2.shape_pt_lon) / 2.0]
 }
 
-function transitTimeToRealDate (dateObj, timeStr) {
+function transitTimeToRealDate (dateObj, timeStr, timeZone) {
   // If we pass in a time that's after midnight, this code kills all humans.
+  if (timeZone === undefined) throw new Error("You must specify a time zone.");
   var hourMinSec = timeStr.split(':'); // Also assuming this works!
   var momentArray = [
     dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), hourMinSec[0],
     hourMinSec[1], hourMinSec[2]];
   // console.log(momentArray);
-  return new Date(moment.tz(momentArray, "US/Eastern"));
+  return new Date(moment.tz(momentArray, timeZone));
 }
 exports.transitTimeToRealDate = transitTimeToRealDate;
 
@@ -141,15 +144,15 @@ function addWhyDoIHaveToWriteThis (x, y) {
   return x + y;
 }
 
-function durationsForShapeList (stopT1, stopT2, shapes, dateObj) {
+function durationsForShapeList (stopT1, stopT2, shapes, dateObj, timeZone) {
   var segmentDistances = new Array(shapes.length - 1);
   for (var i=0; i < (shapes.length - 1); i++) {
     segmentDistances[i] =  segmentDistance(shapes[i], shapes[i+1]);
   }
   var totalDistance = segmentDistances.reduce(addWhyDoIHaveToWriteThis);
   var segmentFractions = segmentDistances.map(d => d / totalDistance);
-  var dateA = transitTimeToRealDate(dateObj, stopT1.departure_time);
-  var dateB = transitTimeToRealDate(dateObj, stopT2.departure_time);
+  var dateA = transitTimeToRealDate(dateObj, stopT1.departure_time, timeZone);
+  var dateB = transitTimeToRealDate(dateObj, stopT2.departure_time, timeZone);
   var duration = dateB - dateA;
   var segmentDurations = segmentFractions.map(f => f * duration);
   return segmentDurations;
@@ -210,15 +213,15 @@ exports.relativeToHeading = relativeToHeading;
 
 
 function sunTimesForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
-                                 dateObj) {
+                                 dateObj, timeZone) {
   var statusTime = new Array(Object.keys(sunStatus).length).fill(0);
   var shapes = shapesForStoptimePair(stoptime1, stoptime2, allStops, allShapes);
   var durations = durationsForShapeList(stoptime1, stoptime2, shapes,
-                                        dateObj);
+                                        dateObj, timeZone);
   console.assert(shapes.length == durations.length + 1,
                  "I suspect I am about to crash.");
   var startTime = transitTimeToRealDate(
-    dateObj, stoptime1.departure_time);
+    dateObj, stoptime1.departure_time, timeZone);
   for (var i = 0; i < durations.length; i++) {
     var endTime = new Date(startTime.getTime() + durations[i]);
     var segmentResult = sunStatusForSegment(startTime, endTime,
@@ -266,14 +269,14 @@ function addObjects(o1, o2) {
 }
 
 function sunStatusAlongRoute(stopID1, stopID2, routeStoptimes,
-                             allStops, allShapes, dateObj) {
+                             allStops, allShapes, dateObj, timeZone) {
   var curStatus = new Array(Object.keys(sunStatus).length).fill(0);
   var stoptimes = stoptimesAlongRoute(stopID1, stopID2, routeStoptimes,
                                       allStops, allShapes);
   if (stoptimes.length < 2) throw "found less than 2 stoptimes on route.";
   for (var i=1; i < stoptimes.length; i++) {
     var nextStatus = sunTimesForStoptimePair(
-      stoptimes[i-1], stoptimes[i], allStops, allShapes, dateObj);
+      stoptimes[i-1], stoptimes[i], allStops, allShapes, dateObj, timeZone);
     curStatus = addObjects(curStatus, nextStatus);
   }
   return curStatus;
@@ -332,8 +335,8 @@ function getYearOfTripsP(agencyKey, tripID, startDate, fromStop, toStop) {
       result[i] = {
         date: dates[i],
         sunStatus : sunStatusAlongRoute(
-          fromStop, toStop, tripData.stoptimes, tripData.stops, tripData.shapes[0],
-          dates[i])};
+          fromStop, toStop, tripData.stoptimes, tripData.stops,
+          tripData.shapes[0], dates[i], timeZone)};
     }
     return result;
   });
@@ -358,6 +361,14 @@ function formatMultiDayResults(results) {
   return output;
 }
 exports.formatMultiDayResults = formatMultiDayResults;
+
+function getYearVerdictAjaxP(
+  agencyKey, tripID, startDate8601, fromStop, toStop) {
+  const startDate = new Date(startDate8601);
+  return getYearOfTripsP(agencyKey, tripID, startDate, fromStop, toStop).then(
+    formatMultiDayResults);
+}
+exports.getYearVerdictAjaxP = getYearVerdictAjaxP;
 
 function getServicesForDateP(agencyKey, dateObj) {
   const dateYYYYMMDD = [dateObj.getFullYear(),dateObj.getMonth() + 1,

@@ -56,4 +56,21 @@ function repopulateDestinationsFromTrip() {
 }
 $('#trip').change(repopulateDestinationsFromTrip);
 
+function populateVerdict() {
+  const agencyKey = $("#agencyKey").val();
+  const tripDate = $("#date").val();
+  const sourceStop = $("#sourceStop").val();
+  const destStop = $("#destinationStop").val();
+  const trip = $("#trip").val();
+  console.log("Sending /verdict query...");
+  $.get("/verdict",
+            {agencyKey: agencyKey, trip: trip, sourceStop: sourceStop,
+             destStop: destStop, date: tripDate},
+            function(verdict) {
+    console.log("Response from server: " + verdict);
+    $("#verdict").html(verdict);
+  });
+}
+$('#destinationStop').change(populateVerdict);
+
 console.log("We definitely ran the client.js once.");
