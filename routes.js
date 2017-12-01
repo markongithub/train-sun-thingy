@@ -15,7 +15,7 @@ app.use(express.static('public'))
 
 app.set('view engine', 'pug')
 app.get('/', function (req, res) {
-   MyCode.getAgencyKeysP().then(result => res.render('index', { title: 'Hey', agencyKeys: result }))
+   MyCode.getAgencyKeysP().then(result => res.render('index', { title: 'Train sun thingy', agencyKeys: result }))
 })
 
 

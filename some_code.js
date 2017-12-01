@@ -328,7 +328,12 @@ function dateRange(startDate, days) {
 exports.dateRange = dateRange;
 
 function getYearOfTripsP(agencyKey, tripID, startDate, fromStop, toStop) {
-  return getAllTripDataP(agencyKey, tripID).then(tripData => {
+  const tripDataP = getAllTripDataP(agencyKey, tripID);
+  const timeZoneP = getTimeZoneForAgencyP(agencyKey);
+  return Promise.all([tripDataP, timeZoneP]).then(results => {
+    const tripData = results[0];
+    const timeZone = results[1];
+    console.log("Working on time zone " + timeZone);
     var dates = dateRange(startDate, 365); // Sucks if it's a leap year.
     var result = new Array(365);
     for (var i=0; i< dates.length; i++) {
@@ -508,3 +513,15 @@ function getAgencyKeysP() {
     a => a.agency_key))));
 }
 exports.getAgencyKeysP = getAgencyKeysP;
+
+function getTimeZoneForAgencyP(agencyKey) {
+  return gtfs.getAgencies({agency_key: agencyKey}).then(agencies => {
+    if (agencies.length < 1) throw new Error(
+      "Agency key not found: " + agencyKey);
+    if (agencies[0].agency_timezone === undefined) {
+      console.log(agencyKey + " has no timezone set, defaulting to Eastern.");
+      return "US/Eastern";
+    }
+    return agencies[0].agency_timezone;
+  });
+}
