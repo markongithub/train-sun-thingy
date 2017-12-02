@@ -169,7 +169,13 @@ exports.sunStatus = sunStatus;
 
 function sunnySideVerdict(statuses) {
   if (statuses[sunStatus.LEFT] == statuses[sunStatus.RIGHT]) {
-    return "it does not matter which side of the vehicle you sit on."
+    if (statuses[sunStatus.LEFT] || statuses[sunStatus.CENTER]) {
+      return ("both sides of the vehicle get equal sunlight during this trip " +
+              "-- but this is most likely a miscalculation on our part.");
+    }
+    else {
+      return "the sun is below the horizon for this trip.";
+    }
   }
   else if (statuses[sunStatus.LEFT] > statuses[sunStatus.RIGHT]) {
     return "this trip has more sunlight on the left side of the vehicle.";
@@ -357,7 +363,7 @@ function formatMultiDayResults(results) {
     if ((i == (results.length - 1)) || (newVerdict != curVerdict)) {
       var newOutput = (
         "From " + segmentStarted + " through " +
-        results[i-1].date.toDateString() + ", " + curVerdict + " ");
+        results[i-1].date.toDateString() + ", " + curVerdict + "<BR>");
       output += newOutput;
       curVerdict = newVerdict;
       segmentStarted = results[i].date.toDateString();
