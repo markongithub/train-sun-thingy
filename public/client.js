@@ -8,6 +8,7 @@ function repopulateSourceStopsFromAgency() {
   const newKey = $(this).val();
   console.log("the agency key is now " + newKey);
   const sourceStops = $("#sourceStop");
+  $("#verdict").html(verdict);
   [sourceStops, $("#trip"), $("#destinationStop")].forEach(emptySelect);
   $.getJSON("/stops", {agencyKey: newKey}, function(data) {
     for (var i=0; i < data.length; i++) {
@@ -25,6 +26,7 @@ function repopulateTripsFromDateAndSourceStop() {
   const newSource = $("#sourceStop").val();
   const sourceStops = $("#sourceStop");
   const trips = $("#trip");
+  $("#verdict").html(verdict);
   [trips, $("#destinationStop")].forEach(emptySelect);
   $.getJSON("/trips",
             {agencyKey: agencyKey, date: newDate, sourceStop: newSource},
@@ -44,6 +46,7 @@ function repopulateDestinationsFromTrip() {
   const destStops = $("#destinationStop");
   const trip = $("#trip").val();
   emptySelect(destStops);
+  $("#verdict").html(verdict);
   $.getJSON("/destinations",
             {agencyKey: agencyKey, trip: trip, sourceStop: sourceStop},
             function(data) {
