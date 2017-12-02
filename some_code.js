@@ -349,16 +349,19 @@ function getStoptimesThenStopsP (agencyKey, tripID) {
 function getAllTripDataP (agencyKey, tripID) {
   var p1 = gtfs.getShapes({agency_key: agencyKey, trip_id: tripID});
   var p2 = getStoptimesThenStopsP(agencyKey, tripID);
-  return Promise.all([p1, p2]).then(results => {
+  var p3 = getTimeZoneForAgencyP(agencyKey);
+  return Promise.all([p1, p2, p3]).then(results => {
     if ((results.length != 2) || (results[1].length != 2)) {
       throw "I got back a weird array size from GTFS."
     }
     const output = { shapes: results[0],
                      stoptimes: results[1][0],
-                     stops: results[1][1] };
+                     stops: results[1][1],
+                     timeZone: results[2] };
     console.log(
       output.shapes[0].length + " shapes, " + output.stoptimes.length +
-      " stoptimes, " + output.stops.length + " stops");
+      " stoptimes, " + output.stops.length + " stops, time zone " +
+      output.timeZone);
     return output;
   });
 }
@@ -377,11 +380,8 @@ exports.dateRange = dateRange;
 
 function getYearOfTripsP(agencyKey, tripID, startDate, fromStop, toStop) {
   const tripDataP = getAllTripDataP(agencyKey, tripID);
-  const timeZoneP = getTimeZoneForAgencyP(agencyKey);
-  return Promise.all([tripDataP, timeZoneP]).then(results => {
-    const tripData = results[0];
-    const timeZone = results[1];
-    console.log("Working on time zone " + timeZone);
+  return tripDataP.then(tripData => {
+    console.log("Working on time zone " + tripData.timeZone);
     var dates = dateRange(startDate, 365); // Sucks if it's a leap year.
     var result = new Array(365);
     for (var i=0; i< dates.length; i++) {
@@ -389,7 +389,7 @@ function getYearOfTripsP(agencyKey, tripID, startDate, fromStop, toStop) {
         date: dates[i],
         sunStatus : sunStatusAlongRoute(
           fromStop, toStop, tripData.stoptimes, tripData.stops,
-          tripData.shapes[0], dates[i], timeZone)};
+          tripData.shapes[0], dates[i], tripData.timeZone)};
     }
     return result;
   });
