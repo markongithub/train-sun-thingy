@@ -396,6 +396,17 @@ function getYearOfTripsP(agencyKey, tripID, startDate, fromStop, toStop) {
 }
 exports.getYearOfTripsP = getYearOfTripsP;
 
+function getDetailsForTripP(agencyKey, tripID, startDate, fromStop, toStop) {
+  const tripDataP = getAllTripDataP(agencyKey, tripID);
+  return tripDataP.then(tripData => {
+    console.log("Working on time zone " + tripData.timeZone);
+    return sunDetailsAlongRoute(
+      fromStop, toStop, tripData.stoptimes, tripData.stops,
+      tripData.shapes[0], dates[i], tripData.timeZone);
+  });
+}
+exports.getDetailsForTripP = getDetailsForTripP;
+
 function formatMultiDayResults(results) {
   var curVerdict = sunnySideVerdict(results[0].sunStatus);
   var segmentStarted = results[0].date.toDateString();
