@@ -241,6 +241,33 @@ function sunTimesForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
 }
 exports.sunTimesForStoptimePair = sunTimesForStoptimePair;
 
+function sunDetailsForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
+                                   dateObj, timeZone) {
+  var shapes = shapesForStoptimePair(stoptime1, stoptime2, allStops, allShapes);
+  var durations = durationsForShapeList(stoptime1, stoptime2, shapes,
+                                        dateObj, timeZone);
+  var results = new Array(durations.length);
+  console.assert(shapes.length == durations.length + 1,
+                 "I suspect I am about to crash.");
+  var startTime = transitTimeToRealDate(
+    dateObj, stoptime1.departure_time, timeZone);
+  for (var i = 0; i < durations.length; i++) {
+    var endTime = new Date(startTime.getTime() + durations[i]);
+    var segmentResult = sunStatusForSegment(startTime, endTime,
+                                            shapes[i], shapes[i+1]);
+    results[i] = { startTime: startTime,
+                   endTime: endTime,
+                   startLat: shapes[i].shape_pt_lat,
+                   startLon: shapes[i].shape_pt_lon,
+                   endLat: shapes[i+1].shape_pt_lat,
+                   endLon: shapes[i+1].shape_pt_lon,
+                   sunStatus: segmentResult };
+    startTime = endTime;
+  }
+  return results;
+}
+exports.sunDetailsForStoptimePair = sunDetailsForStoptimePair;
+
 function stoptimesAlongRoute(stopID1, stopID2, routeStoptimes,
                              allStops, allShapes) {
   var result = [];
@@ -288,6 +315,21 @@ function sunStatusAlongRoute(stopID1, stopID2, routeStoptimes,
   return curStatus;
 }
 exports.sunStatusAlongRoute = sunStatusAlongRoute;
+
+function sunDetailsAlongRoute(stopID1, stopID2, routeStoptimes,
+                             allStops, allShapes, dateObj, timeZone) {
+  var result = new Array();
+  var stoptimes = stoptimesAlongRoute(stopID1, stopID2, routeStoptimes,
+                                      allStops, allShapes);
+  if (stoptimes.length < 2) throw "found less than 2 stoptimes on route.";
+  for (var i=1; i < stoptimes.length; i++) {
+    var curDetails = sunDetailsForStoptimePair(
+      stoptimes[i-1], stoptimes[i], allStops, allShapes, dateObj, timeZone);
+    result = result.concat(curDetails);
+  }
+  return result;
+}
+exports.sunDetailsAlongRoute = sunDetailsAlongRoute;
 
 // if I have a tripID
 // I can get shapes
