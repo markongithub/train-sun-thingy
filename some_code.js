@@ -5,6 +5,10 @@ var suncalc = require('suncalc');
 
 var exports = module.exports = {};
 
+process.on('unhandledRejection', function onError(err) {
+     throw err;
+});
+
 function shapesForStoptimePair (stopT1, stopT2, stops, shapes) {
   if (useShapeDistance(stopT1, stopT2, shapes)) {
     return shapesForStoptimePairUsingDist(stopT1, stopT2, shapes);
@@ -90,7 +94,8 @@ function shapesForStoptimePairUsingLatLon (
   if (shape1 >= shape2) {
     throw "The shapes are out of order.";
   }
-  return shapes.slice(shape1, shape2);
+  console.log("Returning shapes from " + shape1 + " to " + shape2);
+  return shapes.slice(shape1, shape2 + 1);
 }
 
 function vehicleHeading (shape1, shape2) {
@@ -222,6 +227,7 @@ function sunTimesForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
                                  dateObj, timeZone) {
   var statusTime = new Array(Object.keys(sunStatus).length).fill(0);
   var shapes = shapesForStoptimePair(stoptime1, stoptime2, allStops, allShapes);
+  console.assert(shapes.length > 1, "Insufficient shapesForStoptimePair");
   var durations = durationsForShapeList(stoptime1, stoptime2, shapes,
                                         dateObj, timeZone);
   console.assert(shapes.length == durations.length + 1,
@@ -244,6 +250,7 @@ exports.sunTimesForStoptimePair = sunTimesForStoptimePair;
 function sunDetailsForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
                                    dateObj, timeZone) {
   var shapes = shapesForStoptimePair(stoptime1, stoptime2, allStops, allShapes);
+  console.assert(shapes.length > 1, "Insufficient shapesForStoptimePair");
   var durations = durationsForShapeList(stoptime1, stoptime2, shapes,
                                         dateObj, timeZone);
   var results = new Array(durations.length);
