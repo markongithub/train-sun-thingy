@@ -351,7 +351,7 @@ function getAllTripDataP (agencyKey, tripID) {
   var p2 = getStoptimesThenStopsP(agencyKey, tripID);
   var p3 = getTimeZoneForAgencyP(agencyKey);
   return Promise.all([p1, p2, p3]).then(results => {
-    if ((results.length != 2) || (results[1].length != 2)) {
+    if ((results.length != 3) || (results[1].length != 2)) {
       throw "I got back a weird array size from GTFS."
     }
     const output = { shapes: results[0],
@@ -402,7 +402,7 @@ function getDetailsForTripP(agencyKey, tripID, startDate, fromStop, toStop) {
     console.log("Working on time zone " + tripData.timeZone);
     return sunDetailsAlongRoute(
       fromStop, toStop, tripData.stoptimes, tripData.stops,
-      tripData.shapes[0], dates[i], tripData.timeZone);
+      tripData.shapes[0], startDate, tripData.timeZone);
   });
 }
 exports.getDetailsForTripP = getDetailsForTripP;
