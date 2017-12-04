@@ -75,6 +75,10 @@ function shapeIndexNearestToStop (stop, shapes) {
   return bestIndex;
 }
 
+function fakeShapeFromStop(stop) {
+  return { shape_pt_lat: stop.stop_lat, shape_pt_lon: stop.stop_lon }
+}
+
 function shapesForStoptimePairUsingLatLon (
   stopT1, stopT2, stops, shapes) {
   var stop1, stop2;
@@ -88,6 +92,10 @@ function shapesForStoptimePairUsingLatLon (
   }
   if (stop1 === undefined || stop2 === undefined) {
     throw "I failed to find the two stop times in the stops array";
+  }
+  if (shapes === undefined || shapes.length < 1) {
+    // It's not you I hate, Amtrak. I hate what I became because of you.
+    return [fakeShapeFromStop(stop1), fakeShapeFromStop(stop2)];
   }
   var shape1 = shapeIndexNearestToStop(stop1, shapes);
   var shape2 = shapeIndexNearestToStop(stop2, shapes);
@@ -365,10 +373,14 @@ function getAllTripDataP (agencyKey, tripID) {
                      stoptimes: results[1][0],
                      stops: results[1][1],
                      timeZone: results[2] };
-    console.log(
-      output.shapes[0].length + " shapes, " + output.stoptimes.length +
-      " stoptimes, " + output.stops.length + " stops, time zone " +
-      output.timeZone);
+    var outputStats = (
+      output.stoptimes.length + " stoptimes, " + output.stops.length +
+      " stops, time zone " + output.timeZone + ", " + output.shapes.length);
+    if (output.shapes.length > 0) {
+      outputStats += ("x" + output.shapes[0].length);
+    }
+    outputStats += "shapes";
+    console.log(outputStats);
     return output;
   });
 }
