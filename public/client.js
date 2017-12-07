@@ -97,7 +97,9 @@ function populateVerdict() {
             function(geojson) {
     console.log("Response from server: " + geojson);
     mapSideEffect = map.data.addGeoJson(geojson);
-    // map.fitBounds(geojson.getBounds());
+    var sw = new google.maps.LatLng(geojson.bbox[1], geojson.bbox[0]);
+    var ne = new google.maps.LatLng(geojson.bbox[3], geojson.bbox[2]);
+    map.fitBounds(new google.maps.LatLngBounds(sw, ne));
     colorCode();
   });
 }

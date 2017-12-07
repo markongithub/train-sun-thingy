@@ -1,5 +1,6 @@
 "use strict";
 var geojson = require('geojson');
+var geojsonExtent = require('@mapbox/geojson-extent');
 var gtfs = require('gtfs');
 var moment = require('moment-timezone');
 var suncalc = require('suncalc');
@@ -421,9 +422,10 @@ function getDetailsForTripP(agencyKey, tripID, startDate, fromStop, toStop) {
   const tripDataP = getAllTripDataP(agencyKey, tripID);
   return tripDataP.then(tripData => {
     console.log("Working on time zone " + tripData.timeZone);
-    return sunDetailsAlongRoute(
+    const geojson = sunDetailsAlongRoute(
       fromStop, toStop, tripData.stoptimes, tripData.stops,
       tripData.shapes[0], startDate, tripData.timeZone);
+    return geojsonExtent.bboxify(geojson);
   });
 }
 exports.getDetailsForTripP = getDetailsForTripP;

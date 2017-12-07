@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/markongithub/train-sun-thingy#readme",
   "dependencies": {
+    "@mapbox/geojson-extent": "^0.3.2",
     "express": "^4.16.2",
     "geojson": "^0.5.0",
     "gtfs": "^1.1.1",
