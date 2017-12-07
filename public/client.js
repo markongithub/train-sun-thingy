@@ -4,12 +4,31 @@ function emptySelect(element) {
   element.append(new Option());
 }
 
+function clearEverythingAfterAgency() {
+  emptySelect($("#sourceStop"));
+  clearEverythingAfterSourceStop();
+}
+
+function clearEverythingAfterSourceStop() {
+  emptySelect($("#trip"));
+  clearEverythingAfterTrip();
+}
+
+function clearEverythingAfterTrip() {
+  emptySelect($("#destinationStop"));
+  clearEverythingAfterDestinationStop();
+}
+
+function clearEverythingAfterDestinationStop() {
+  $("#verdict").html("");
+  map.data.forEach(f => map.data.remove(f));
+}
+
 function repopulateSourceStopsFromAgency() {
   const newKey = $(this).val();
   console.log("the agency key is now " + newKey);
   const sourceStops = $("#sourceStop");
-  $("#verdict").html("");
-  [sourceStops, $("#trip"), $("#destinationStop")].forEach(emptySelect);
+  clearEverythingAfterAgency();
   $.getJSON("/stops", {agencyKey: newKey}, function(data) {
     for (var i=0; i < data.length; i++) {
       // console.log("Appending " + data[i].stop_name);
@@ -26,8 +45,7 @@ function repopulateTripsFromDateAndSourceStop() {
   const newSource = $("#sourceStop").val();
   const sourceStops = $("#sourceStop");
   const trips = $("#trip");
-  $("#verdict").html("");
-  [trips, $("#destinationStop")].forEach(emptySelect);
+  clearEverythingAfterSourceStop();
   $.getJSON("/trips",
             {agencyKey: agencyKey, date: newDate, sourceStop: newSource},
             function(data) {
@@ -45,8 +63,7 @@ function repopulateDestinationsFromTrip() {
   const sourceStop = $("#sourceStop").val();
   const destStops = $("#destinationStop");
   const trip = $("#trip").val();
-  emptySelect(destStops);
-  $("#verdict").html("");
+  clearEverythingAfterTrip();
   $.getJSON("/destinations",
             {agencyKey: agencyKey, trip: trip, sourceStop: sourceStop},
             function(data) {
@@ -74,7 +91,38 @@ function populateVerdict() {
     console.log("Response from server: " + verdict);
     $("#verdict").html(verdict);
   });
+  $.getJSON("/geojson",
+            {agencyKey: agencyKey, trip: trip, sourceStop: sourceStop,
+             destStop: destStop, date: tripDate},
+            function(geojson) {
+    console.log("Response from server: " + geojson);
+    mapSideEffect = map.data.addGeoJson(geojson);
+    // map.fitBounds(geojson.getBounds());
+    colorCode();
+  });
 }
+
 $('#destinationStop').change(populateVerdict);
+
+var mapOptions = {
+  zoom: 5,
+  center: new google.maps.LatLng(40.502651, -74.449498) // yeah
+};
+var mapSideEffect;
+
+var map = new google.maps.Map(
+  document.getElementById('map_canvas'), mapOptions);
+
+function colorCode() {
+  map.data.setStyle(function(feature) {
+    if (feature.getProperty("sunStatus") != undefined) {
+      var sunStatus = feature.getProperty("sunStatus");
+      var colors = ['aqua', 'red', 'white', 'black'];
+      return {
+        strokeColor: colors[sunStatus]
+      };
+    }
+  });
+}
 
 console.log("We definitely ran the client.js once.");

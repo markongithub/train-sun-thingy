@@ -20,5 +20,7 @@ html
     select(id="destinationStop")
       option
     p(id="verdict")
+    div(id="map_canvas" style="display: block; width: 60%; height: 60%;")
   script(src="https://code.jquery.com/jquery-3.2.1.min.js")
+  script(src="https://maps.googleapis.com/maps/api/js?sensor=false")
   script(src="/client.js")

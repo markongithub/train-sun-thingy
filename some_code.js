@@ -1,4 +1,5 @@
 "use strict";
+var geojson = require('geojson');
 var gtfs = require('gtfs');
 var moment = require('moment-timezone');
 var suncalc = require('suncalc');
@@ -34,8 +35,6 @@ function shapesForStoptimePairUsingDist(st1, st2, shapes) {
   // can I assume shapes is sorted? I shall assume that. And regret it.
   var startShapeDistance = st1.shape_dist_traveled;
   var endShapeDistance = st2.shape_dist_traveled;
-  // console.log("Looking for shapes between " +
-  //          [startShapeDistance, endShapeDistance]);
   var startShapeIndex;
   var endShapeIndex;
   for (var i = 1; i < shapes.length; i++){
@@ -48,8 +47,14 @@ function shapesForStoptimePairUsingDist(st1, st2, shapes) {
       break;
     }
   }
-  if (startShapeIndex === undefined || endShapeIndex === undefined) {
-    throw "I failed to find the start and end indices.";
+  if (startShapeIndex === undefined) {
+    throw "I never found the start index.";
+  }
+  if (endShapeIndex === undefined) {
+    // This happens on Atlantic City Line trips to Philly.
+    console.log("I never found the last shape. That's not great. Is this " +
+                "the Atlantic City line?");
+    endShapeIndex = shapes.length - 1;
   }
   return shapes.slice(startShapeIndex, endShapeIndex);
 }
@@ -102,7 +107,6 @@ function shapesForStoptimePairUsingLatLon (
   if (shape1 >= shape2) {
     throw "The shapes are out of order.";
   }
-  console.log("Returning shapes from " + shape1 + " to " + shape2);
   return shapes.slice(shape1, shape2 + 1);
 }
 
@@ -270,16 +274,13 @@ function sunDetailsForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
     var endTime = new Date(startTime.getTime() + durations[i]);
     var segmentResult = sunStatusForSegment(startTime, endTime,
                                             shapes[i], shapes[i+1]);
-    results[i] = { startTime: startTime,
-                   endTime: endTime,
-                   startLat: shapes[i].shape_pt_lat,
-                   startLon: shapes[i].shape_pt_lon,
-                   endLat: shapes[i+1].shape_pt_lat,
-                   endLon: shapes[i+1].shape_pt_lon,
+    results[i] = { line: [
+      [shapes[i].shape_pt_lon, shapes[i].shape_pt_lat],
+      [shapes[i+1].shape_pt_lon, shapes[i+1].shape_pt_lat]],
                    sunStatus: segmentResult };
-    startTime = endTime;
   }
   return results;
+  //return geojson.parse(results, {'LineString': 'line'});
 }
 exports.sunDetailsForStoptimePair = sunDetailsForStoptimePair;
 
@@ -342,7 +343,8 @@ function sunDetailsAlongRoute(stopID1, stopID2, routeStoptimes,
       stoptimes[i-1], stoptimes[i], allStops, allShapes, dateObj, timeZone);
     result = result.concat(curDetails);
   }
-  return result;
+  return geojson.parse(result, {'LineString': 'line'});
+  // return result;
 }
 exports.sunDetailsAlongRoute = sunDetailsAlongRoute;
 
@@ -379,7 +381,7 @@ function getAllTripDataP (agencyKey, tripID) {
     if (output.shapes.length > 0) {
       outputStats += ("x" + output.shapes[0].length);
     }
-    outputStats += "shapes";
+    outputStats += " shapes";
     console.log(outputStats);
     return output;
   });
@@ -452,6 +454,13 @@ function getYearVerdictAjaxP(
     formatMultiDayResults);
 }
 exports.getYearVerdictAjaxP = getYearVerdictAjaxP;
+
+function getGeoJSONAjaxP(
+  agencyKey, tripID, startDate8601, fromStop, toStop) {
+  const startDate = new Date(startDate8601);
+  return getDetailsForTripP(agencyKey, tripID, startDate, fromStop, toStop);
+}
+exports.getGeoJSONAjaxP = getGeoJSONAjaxP;
 
 function getServicesForDateP(agencyKey, dateObj) {
   const dateYYYYMMDD = [dateObj.getFullYear(),dateObj.getMonth() + 1,

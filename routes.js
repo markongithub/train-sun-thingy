@@ -45,4 +45,13 @@ app.get('/verdict', function (req, res) {
    });
 })
 
+app.get('/geojson', function (req, res) {
+   MyCode.getGeoJSONAjaxP(
+     req.query.agencyKey, req.query.trip, req.query.date, req.query.sourceStop,
+     req.query.destStop).then(result => {
+     console.log("Sending result: " + result);
+     res.send(result);
+   });
+})
+
 app.listen(8080, () => console.log('Example app listening on port 8080!'))
