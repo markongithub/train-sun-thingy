@@ -289,6 +289,12 @@ function stoptimesAlongRoute(stopID1, stopID2, routeStoptimes,
                              allStops, allShapes) {
   var result = [];
   var onRoute = false;
+  var parentStop = new Map();
+  for (var i = 0; i < allStops.length; i++) {
+    if (allStops[i].parent_station !== undefined) {
+      parentStop.set(allStops[i].stop_id, allStops[i].parent_station);
+    }
+  }
   for (var i = 0; i < routeStoptimes.length; i++) {
     if (routeStoptimes[i].stop_id == stopID2) {
       if (result.length < 1) throw "Found end stop before first, that is bad.";
