@@ -285,8 +285,7 @@ function sunDetailsForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
 }
 exports.sunDetailsForStoptimePair = sunDetailsForStoptimePair;
 
-function stoptimesAlongRoute(stopID1, stopID2, routeStoptimes,
-                             allStops, allShapes) {
+function stoptimesAlongRoute(stopID1, stopID2, routeStoptimes, allStops) {
   var result = [];
   var onRoute = false;
   var parentStop = new Map();
@@ -329,7 +328,7 @@ function sunStatusAlongRoute(stopID1, stopID2, routeStoptimes,
                              allStops, allShapes, dateObj, timeZone) {
   var curStatus = new Array(Object.keys(sunStatus).length).fill(0);
   var stoptimes = stoptimesAlongRoute(stopID1, stopID2, routeStoptimes,
-                                      allStops, allShapes);
+                                      allStops);
   if (stoptimes.length < 2) throw "found less than 2 stoptimes on route.";
   for (var i=1; i < stoptimes.length; i++) {
     var nextStatus = sunTimesForStoptimePair(
@@ -344,7 +343,7 @@ function sunDetailsAlongRoute(stopID1, stopID2, routeStoptimes,
                              allStops, allShapes, dateObj, timeZone) {
   var result = new Array();
   var stoptimes = stoptimesAlongRoute(stopID1, stopID2, routeStoptimes,
-                                      allStops, allShapes);
+                                      allStops);
   if (stoptimes.length < 2) throw "found less than 2 stoptimes on route.";
   for (var i=1; i < stoptimes.length; i++) {
     var curDetails = sunDetailsForStoptimePair(
