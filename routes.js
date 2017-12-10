@@ -20,7 +20,7 @@ app.get('/', function (req, res) {
 
 
 app.get('/stops', function (req, res) {
-   MyCode.getAllStopsP(req.query.agencyKey).then(result => res.send(result));
+   MyCode.getSourceStopsP(req.query.agencyKey).then(result => res.send(result));
 })
 
 app.get('/trips', function (req, res) {

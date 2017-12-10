@@ -296,7 +296,8 @@ function stoptimesAlongRoute(stopID1, stopID2, routeStoptimes,
       return result;
     }
 
-    if (routeStoptimes[i].stop_id == stopID1) {
+    if ((routeStoptimes[i].stop_id == stopID1) ||
+        (parentStop.get(routeStoptimes[i].stop_id) == stopID1)) {
       onRoute = true;
     }
     if (onRoute) {
@@ -359,6 +360,7 @@ function getStoptimesThenStopsP (agencyKey, tripID) {
   return gtfs.getStoptimes({agency_key: agencyKey, trip_id: tripID})
   .then(stoptimes => {
     var stopIDs = stoptimes.map(o => o.stop_id);
+    // I don't think this getStops call needs to worry about parent_stations.
     return gtfs.getStops({agency_key: agencyKey, stop_id: {$in: stopIDs}})
     .then(stops => [stoptimes, stops]);
   });
@@ -510,12 +512,20 @@ function getStoptimesForStopAndDateP(agencyKey, stopID, dateObj) {
     if (serviceIDs.length < 1) {
       console.error("No service for this date: " + dateObj + " Or it is SEPTA's fault.");
     }
-    return gtfs.getStoptimes({
+    // We have to get all the children of stopID, if it has any. Then we return
+    // stoptimes for both the parent and the children.
+    return gtfs.getStops({
       agency_key: agencyKey,
-      stop_id: stopID,
-      service_id: {
-        $in: serviceIDs
-      }
+      parent_station: stopID }).then(childStops => {
+      const possibleStopIDs = childStops.map(s => s.stop_id).concat([stopID]);
+      console.log("Possible stop IDs: " + possibleStopIDs);
+      return gtfs.getStoptimes({
+        agency_key: agencyKey,
+        stop_id: {$in: possibleStopIDs},
+        service_id: {
+          $in: serviceIDs
+        }
+      });
     });
   });
 }
@@ -580,11 +590,13 @@ function sortByStopName(stops) {
     return 0;
   });
 }
-function getAllStopsP(agencyKey) {
-  return gtfs.getStops({agency_key: agencyKey}).then(
+function getSourceStopsP(agencyKey) {
+  // parent_station could be an empty string, or not there at all.
+  return gtfs.getStops({agency_key: agencyKey,
+                        parent_station: {$in: [undefined, ""]}}).then(
     stops => sortByStopName(stops.map(stopIDAndName)));
 }
-exports.getAllStopsP = getAllStopsP;
+exports.getSourceStopsP = getSourceStopsP;
 
 function lookupStopNameP(agencyKey, stopID) {
   return gtfs.getStops({agency_key: agencyKey, stop_id: stopID}).then(stops => {
@@ -596,11 +608,23 @@ function lookupStopNameP(agencyKey, stopID) {
 function getSubsequentStopsP(agencyKey, stopID, tripID) {
   return gtfs.getStoptimes({agency_key: agencyKey,
                             trip_id: tripID}).then(stoptimes => {
-    const startIndex = stoptimes.findIndex(st => st.stop_id == stopID);
-    const remainingStoptimes = stoptimes.slice(startIndex + 1);
-    const stopPromises = remainingStoptimes.map(
-      st => lookupStopNameP(agencyKey, st.stop_id));
-    return Promise.all(stopPromises);
+    // stopID is a parent. But these stoptimes point to children.
+    const allStopIDsOnTrip = stoptimes.map(o => o.stop_id);
+    return gtfs.getStops(
+      {agency_key: agencyKey, stop_id: {$in: allStopIDsOnTrip}}).then(stops => {
+      var stopsByStopID = {};
+      for (var i=0; i < stops.length; i++) {
+        stopsByStopID[stops[i].stop_id] = stops[i];
+      }
+      const startIndex = stoptimes.findIndex(
+        st => (st.stop_id == stopID ||
+               stopsByStopID[st.stop_id].parent_station == stopID));
+      const remainingStoptimes = stoptimes.slice(startIndex + 1);
+      const output = remainingStoptimes.map(st => (
+        {stop_id: st.stop_id,
+         stop_name: stopsByStopID[st.stop_id].stop_name}));
+      return output;
+    });
   });
 }
 exports.getSubsequentStopsP = getSubsequentStopsP;
