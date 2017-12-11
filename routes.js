@@ -18,6 +18,9 @@ app.get('/', function (req, res) {
    MyCode.getAgencyKeysP().then(result => res.render('index', { title: 'Train sun thingy', agencyKeys: result }))
 })
 
+app.get('/dates', function (req, res) {
+   MyCode.getDates8601P(req.query.agencyKey).then(result => res.send(result));
+})
 
 app.get('/stops', function (req, res) {
    MyCode.getSourceStopsP(req.query.agencyKey).then(result => res.send(result));

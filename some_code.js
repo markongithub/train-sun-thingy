@@ -474,7 +474,6 @@ exports.getGeoJSONAjaxP = getGeoJSONAjaxP;
 function getServicesForDateP(agencyKey, dateObj) {
   const dateYYYYMMDD = [dateObj.getFullYear(),dateObj.getMonth() + 1,
                         dateObj.getDate()].join('');
-  console.log(dateYYYYMMDD);
   const dayOfWeekLC = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday',
                        'friday', 'saturday'][dateObj.getDay()]
   var calendarReq = {
@@ -511,6 +510,31 @@ function getServicesForDateP(agencyKey, dateObj) {
   });
 }
 exports.getServicesForDateP = getServicesForDateP;
+
+function hasServiceOnDateP(agencyKey, dateObj) {
+  return getServicesForDateP(agencyKey, dateObj).then(
+    services => services.length > 0);
+}
+
+function nearbyDatesWithServiceP(agencyKey) {
+  var startDate = new Date(Date.now());
+  startDate.setDate(startDate.getDate() - 1); // start from yesterday
+  const possibleDates = dateRange(startDate, 8);
+  const boolPromises = possibleDates.map(d => hasServiceOnDateP(agencyKey, d));
+  return Promise.all(boolPromises).then(bools => {
+    var output = [];
+    for (var i=0; i < possibleDates.length; i++) {
+      if (bools[i]) { output.push(possibleDates[i]); }
+    }
+    return output;
+  });
+}
+
+function getDates8601P(agencyKey) {
+  return nearbyDatesWithServiceP(agencyKey).then(dates => dates.map(
+    d => (d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate())));
+}
+exports.getDates8601P = getDates8601P;
 
 function getStoptimesForStopAndDateP(agencyKey, stopID, dateObj) {
   return getServicesForDateP(agencyKey, dateObj).then(serviceIDs => {
