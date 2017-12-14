@@ -108,6 +108,7 @@ function populateVerdict() {
 $('#destinationStop').change(populateVerdict);
 
 function populateMap(mapDate) {
+  console.log("Populating the map with " + mapDate);
   const agencyKey = $("#agencyKey").val();
   const sourceStop = $("#sourceStop").val();
   const destStop = $("#destinationStop").val();
@@ -117,6 +118,7 @@ function populateMap(mapDate) {
              destStop: destStop, date: mapDate},
             function(geojson) {
     console.log("Response from server: " + geojson);
+    map.data.forEach(f => map.data.remove(f));
     mapSideEffect = map.data.addGeoJson(geojson);
     var sw = new google.maps.LatLng(geojson.bbox[1], geojson.bbox[0]);
     var ne = new google.maps.LatLng(geojson.bbox[3], geojson.bbox[2]);
@@ -148,6 +150,8 @@ function colorCode() {
   });
 }
 
-var picker= new Pikaday({field: document.getElementById('map_date')});
+var picker= new Pikaday({field: document.getElementById('map_date'),
+                         onSelect: function(date) {
+                           populateMap(picker.toString()); }});
 clearEverythingAfterAgency();
 console.log("We definitely ran the client.js once.");
