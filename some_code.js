@@ -532,7 +532,7 @@ function nearbyDatesWithServiceP(agencyKey) {
 
 function getDates8601P(agencyKey) {
   return nearbyDatesWithServiceP(agencyKey).then(dates => dates.map(
-    d => (d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate())));
+    d => (d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate())));
 }
 exports.getDates8601P = getDates8601P;
 

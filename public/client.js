@@ -5,6 +5,7 @@ function emptySelect(element) {
 }
 
 function clearEverythingAfterAgency() {
+  emptySelect($("#date"));
   emptySelect($("#sourceStop"));
   clearEverythingAfterSourceStop();
 }
@@ -24,11 +25,19 @@ function clearEverythingAfterDestinationStop() {
   map.data.forEach(f => map.data.remove(f));
 }
 
-function repopulateSourceStopsFromAgency() {
+function repopulateDatesAndSourceStopsFromAgency() {
   const newKey = $(this).val();
   console.log("the agency key is now " + newKey);
+  const dates = $("#date");
   const sourceStops = $("#sourceStop");
   clearEverythingAfterAgency();
+  $.getJSON("/dates", {agencyKey: newKey}, function(data) {
+    for (var i=0; i < data.length; i++) {
+      // console.log("Appending " + data[i].stop_name);
+      var newOpt = new Option(data[i]);
+      dates.append(newOpt);
+    }
+  });
   $.getJSON("/stops", {agencyKey: newKey}, function(data) {
     for (var i=0; i < data.length; i++) {
       // console.log("Appending " + data[i].stop_name);
@@ -37,7 +46,7 @@ function repopulateSourceStopsFromAgency() {
     }
   });
 }
-$('#agencyKey').change(repopulateSourceStopsFromAgency);
+$('#agencyKey').change(repopulateDatesAndSourceStopsFromAgency);
 
 function repopulateTripsFromDateAndSourceStop() {
   const agencyKey = $("#agencyKey").val();
