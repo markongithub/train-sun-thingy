@@ -12,6 +12,8 @@ mongoose.Promise = global.Promise;
 mongoose.connect(config.mongoUrl, {useMongoClient: true});
 
 app.use(express.static('public'))
+app.use('/pikaday',
+        express.static('node_modules/pikaday'))
 
 app.set('view engine', 'pug')
 app.get('/', function (req, res) {

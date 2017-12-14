@@ -1,6 +1,7 @@
 html
   head
     title= title
+    link(rel="stylesheet" href="/pikaday/css/pikaday.css")
   body
     h2 Choose your agency.
     select(id="agencyKey")
@@ -21,6 +22,9 @@ html
       option
     p(id="verdict")
     div(id="map_canvas" style="display: block; width: 60%; height: 60%;")
+    p(id="map_doc") Render the map for this same schedule on another date (regardless of whether it actually runs on that date):
+    input(id="map_date" type="text")
   script(src="https://code.jquery.com/jquery-3.2.1.min.js")
   script(src="https://maps.googleapis.com/maps/api/js?sensor=false")
+  script(src="/pikaday/pikaday.js")
   script(src="/client.js")

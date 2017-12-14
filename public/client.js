@@ -23,6 +23,8 @@ function clearEverythingAfterTrip() {
 function clearEverythingAfterDestinationStop() {
   $("#verdict").html("");
   map.data.forEach(f => map.data.remove(f));
+  $("#map_doc")[0].style.visibility = "hidden";
+  $("#map_date")[0].style.visibility = "hidden";
 }
 
 function repopulateDatesAndSourceStopsFromAgency() {
@@ -100,9 +102,19 @@ function populateVerdict() {
     console.log("Response from server: " + verdict);
     $("#verdict").html(verdict);
   });
+  populateMap(tripDate);
+}
+
+$('#destinationStop').change(populateVerdict);
+
+function populateMap(mapDate) {
+  const agencyKey = $("#agencyKey").val();
+  const sourceStop = $("#sourceStop").val();
+  const destStop = $("#destinationStop").val();
+  const trip = $("#trip").val();
   $.getJSON("/geojson",
             {agencyKey: agencyKey, trip: trip, sourceStop: sourceStop,
-             destStop: destStop, date: tripDate},
+             destStop: destStop, date: mapDate},
             function(geojson) {
     console.log("Response from server: " + geojson);
     mapSideEffect = map.data.addGeoJson(geojson);
@@ -110,10 +122,10 @@ function populateVerdict() {
     var ne = new google.maps.LatLng(geojson.bbox[3], geojson.bbox[2]);
     map.fitBounds(new google.maps.LatLngBounds(sw, ne));
     colorCode();
+    $("#map_doc")[0].style.visibility = "visible"; 
+    $("#map_date")[0].style.visibility = "visible"; 
   });
 }
-
-$('#destinationStop').change(populateVerdict);
 
 var mapOptions = {
   zoom: 5,
@@ -136,4 +148,6 @@ function colorCode() {
   });
 }
 
+var picker= new Pikaday({field: document.getElementById('map_date')});
+clearEverythingAfterAgency();
 console.log("We definitely ran the client.js once.");
