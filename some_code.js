@@ -444,9 +444,16 @@ function formatMultiDayResults(results) {
   for (var i=1; i < results.length; i++) {
     var newVerdict = sunnySideVerdict(results[i].sunStatus);
     if ((i == (results.length - 1)) || (newVerdict != curVerdict)) {
+      var segmentEnded;
+      if (i == (results.length - 1)) {
+        segmentEnded = results[i].date.toDateString();
+      }
+      else {
+        segmentEnded = results[i-1].date.toDateString();
+      }
       var newOutput = (
         "From " + segmentStarted + " through " +
-        results[i-1].date.toDateString() + ", " + curVerdict + "<BR>");
+        segmentEnded + ", " + curVerdict + "<BR>");
       output += newOutput;
       curVerdict = newVerdict;
       segmentStarted = results[i].date.toDateString();
