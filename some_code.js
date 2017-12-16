@@ -578,7 +578,9 @@ function combineStoptimeWithTripP(stoptime) {
     return { trip_id: trip.trip_id,
              departure_time: stoptime.departure_time,
              trip_headsign: trip.trip_headsign,
-             block_id: trip.block_id }
+             block_id: trip.block_id,
+             route_id: trip.route_id,
+             direction_id: trip.direction_id }
   });
 }
 
@@ -587,6 +589,18 @@ function formatAjaxDeparture(departure) {
   if (departure.block_id) departure_desc += (" #" + departure.block_id);
   if (departure.trip_headsign) departure_desc += (
     " toward " + departure.trip_headsign);
+  if (!departure.block_id && !departure.trip_headsign) {
+    // Hardcode some stuff to make DART trains readable. We could query the
+    // route name from the database, or even the last stop. But we don't.
+    if (departure.route_id == "99-13-r11-1") {
+      if (departure.direction_id == "1") {
+        departure_desc += " southbound DART";
+      }
+      else {
+        departure_desc += " northbound DART";
+      }
+    }
+  }
   return { trip_id: departure.trip_id,
            departure_desc: departure_desc }
 }
