@@ -5,7 +5,7 @@ const MyCode = require('./some_code');
 const mongoose = require('mongoose');
 
 const config = {
-  mongoUrl: 'mongodb://localhost:27017/',
+  mongoUrl: 'mongodb://mongo:27017/',
 };
 
 mongoose.Promise = global.Promise;
