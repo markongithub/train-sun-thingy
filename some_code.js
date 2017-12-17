@@ -451,9 +451,14 @@ function formatMultiDayResults(results) {
       else {
         segmentEnded = results[i-1].date.toDateString();
       }
-      var newOutput = (
-        "From " + segmentStarted + " through " +
-        segmentEnded + ", " + curVerdict + "<BR>");
+      var curDates;
+      if (i == (results.length - 1) && output == "") {
+        curDates = "All year round";
+      }
+      else {
+        curDates = "From " + segmentStarted + " through " + segmentEnded;
+      }
+      var newOutput = (curDates + ", " + curVerdict + "<BR>");
       output += newOutput;
       curVerdict = newVerdict;
       segmentStarted = results[i].date.toDateString();
