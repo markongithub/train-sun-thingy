@@ -24,7 +24,7 @@ function clearEverythingAfterDestinationStop() {
   $("#verdict").html("");
   map.data.forEach(f => map.data.remove(f));
   $("#map_doc")[0].style.visibility = "hidden";
-  $("#map_date")[0].style.visibility = "hidden";
+  $("#mapDate")[0].style.visibility = "hidden";
 }
 
 function repopulateDatesAndSourceStopsFromAgency() {
@@ -57,6 +57,8 @@ function repopulateTripsFromDateAndSourceStop() {
   const sourceStops = $("#sourceStop");
   const trips = $("#trip");
   clearEverythingAfterSourceStop();
+  $("#mapDate")[0].value = newDate;
+  console.log("I made the mapDate " + $("#mapDate")[0].value);
   $.getJSON("/trips",
             {agencyKey: agencyKey, date: newDate, sourceStop: newSource},
             function(data) {
@@ -125,7 +127,7 @@ function populateMap(mapDate) {
     map.fitBounds(new google.maps.LatLngBounds(sw, ne));
     colorCode();
     $("#map_doc")[0].style.visibility = "visible"; 
-    $("#map_date")[0].style.visibility = "visible"; 
+    $("#mapDate")[0].style.visibility = "visible"; 
   });
 }
 
@@ -150,7 +152,7 @@ function colorCode() {
   });
 }
 
-var picker= new Pikaday({field: document.getElementById('map_date'),
+var picker= new Pikaday({field: document.getElementById('mapDate'),
                          onSelect: function(date) {
                            populateMap(picker.toString()); }});
 clearEverythingAfterAgency();
