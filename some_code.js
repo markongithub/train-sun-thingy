@@ -575,37 +575,56 @@ exports.getStoptimesForStopAndDateP = getStoptimesForStopAndDateP;
 function combineStoptimeWithTripP(stoptime) {
   const tripsP = gtfs.getTrips({
     agency_key: stoptime.agency_key,
-    trip_id: stoptime.trip_id})
-  return tripsP.then(trips => {
+    trip_id: stoptime.trip_id});
+  const moreStoptimesP = gtfs.getStoptimes({
+    agency_key: stoptime.agency_key,
+    trip_id: stoptime.trip_id});
+  return Promise.all([tripsP, moreStoptimesP]).then(results => {
+    console.assert(results.length == 2, "Bad results from Promise.all.");
+    const trips = results[0];
+    const moreStoptimes = results[1];
     console.assert(trips.length == 1,
                   "I expected to get only one trip back. This is bad.");
+    console.assert(moreStoptimes.length > 1, "Arg why no more stoptimes?");
     const trip = trips[0];
-    return { trip_id: trip.trip_id,
-             departure_time: stoptime.departure_time,
-             trip_headsign: trip.trip_headsign,
-             block_id: trip.block_id,
-             route_id: trip.route_id,
-             direction_id: trip.direction_id }
+    const lastStoptime = moreStoptimes[moreStoptimes.length - 1];
+    // God have mercy on me.
+    const routeP = gtfs.getRoutes({agency_key: stoptime.agency_key,
+                                   route_id: trip.route_id});
+    const stopP = gtfs.getStops({agency_key: stoptime.agency_key,
+                                 stop_id: lastStoptime.stop_id});
+    return Promise.all([routeP, stopP]).then(moreResults => {
+      console.assert(moreResults.length == 2,
+                     "My hacky chain of promises failed as you would expect.");
+      const routes = moreResults[0];
+      const stops = moreResults[1];
+      console.assert(routes.length == 1,
+                     "Expected only one route.");
+      console.assert(stops.length == 1,
+                     "Expected only one stop.");
+      return { trip_id: trip.trip_id,
+               departure_time: stoptime.departure_time,
+               trip_headsign: trip.trip_headsign,
+               block_id: trip.block_id,
+               route_short_name: routes[0].route_short_name,
+               route_long_name: routes[0].route_long_name,
+               last_stop_name: stops[0].stop_name,
+               direction_id: trip.direction_id };
+    });
   });
 }
 
 function formatAjaxDeparture(departure) {
   var departure_desc = departure.departure_time;
+  if (departure.route_short_name)
+    departure_desc += (" " + departure.route_short_name);
+  else if (departure.route_long_name)
+    departure_desc += (" " + departure.route_long_name);
   if (departure.block_id) departure_desc += (" #" + departure.block_id);
-  if (departure.trip_headsign) departure_desc += (
-    " toward " + departure.trip_headsign);
-  if (!departure.block_id && !departure.trip_headsign) {
-    // Hardcode some stuff to make DART trains readable. We could query the
-    // route name from the database, or even the last stop. But we don't.
-    if (departure.route_id == "99-13-r11-1") {
-      if (departure.direction_id == "1") {
-        departure_desc += " southbound DART";
-      }
-      else {
-        departure_desc += " northbound DART";
-      }
-    }
-  }
+  var tripDestination;
+  if (departure.trip_headsign) tripDestination = departure.trip_headsign;
+  else tripDestination = departure.last_stop_name;
+  departure_desc += (" toward " + tripDestination);
   return { trip_id: departure.trip_id,
            departure_desc: departure_desc }
 }
