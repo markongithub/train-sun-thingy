@@ -1,8 +1,10 @@
 html
   head
-    title= title
+    title Train Sun Thingy
     link(rel="stylesheet" href="/pikaday/css/pikaday.css")
   body
+    h1 Train Sun Thingy
+    p It tells you which side of your train (or bus) will get more sunlight.
     h2 Choose your agency.
     select(id="agencyKey")
       option
@@ -22,8 +24,33 @@ html
       option
     p(id="verdict")
     div(id="map_canvas" style="display: block; width: 60%; height: 60%;")
-    p(id="map_doc") Render the map for this same schedule on another date (regardless of whether it actually runs on that date):
+    div(id="map_doc")
+      p Red segments on the map are travel with the sun on the vehicle's right. Blue segments have the sun on the left. Black segments are when the sun is below the horizon.
+      p You can render the map for this same schedule on another date (regardless of whether it actually runs on that date):
     input(id="mapDate" type="text")
+    h2 Hypothetically asked questions:
+    ul
+      li
+        p Q. Why?
+        p A. Sometimes when we ride trains the sun gets in our faces and we don't like it. Also we wanted to learn about Node.js.
+      li
+        p Q. How?
+        p A. <a href="https://github.com/markongithub/train-sun-thingy">Source code is in Github.</a> We get transit data (schedules and route maps) directly from individual transit agencies as <a href="https://developers.google.com/transit/gtfs/">GTFS</a>. We convert those local timestamps to UTC with <a href="https://momentjs.com/">Moment</a>. Then we get the position of the sun from <a href="https://github.com/mourner/suncalc">Suncalc</a>.
+      li
+        p Q. So you handle timezones and DST correctly?
+        p A. Mostly, we think. If you pick a trip near sunrise or sunset, you may see its sun behavior change when your country goes through its DST shift. That's expected.
+        p Two cases we don't handle are trips that take place DURING the DST shift (but it should be dark then, right?) or trips spanning multiple time zones (as on Amtrak or Eurostar).
+      li
+        p Q. What about tunnels?
+        p A. We don't know anything about tunnels, tall buildings, mountains, or any other object that gets between the sun and a vehicle. GTFS includes latitude and longitude but not altitude. It would be possible, but very difficult, to pull all the relevant terrain data out of whatever source Google Earth uses.
+      li
+        p Q. Why no UK trains? UK trains are cool.
+        p A. They are, but their data is exported as something called TransXChange instead of GTFS. There are multiple projects <a href="https://github.com/search?utf8=%E2%9C%93&q=transxchange+to+gtfs&type=">attempting this conversion</a> but we have not yet used any of them successfully. If you have done such a conversion on Linux and want to help, please contact us.
+        p Technically, we do have the trains from Belfast down to the Irish border.
+      li
+        p Q. I picked an agency and it has no service dates.
+        p A. That's because we failed to update the GTFS feed for that agency. Sorry.
+
   script(src="https://code.jquery.com/jquery-3.2.1.min.js")
   script(src="https://maps.googleapis.com/maps/api/js?sensor=false")
   script(src="/pikaday/pikaday.js")
