@@ -48,9 +48,11 @@ html
         p A. They are, but their data is exported as something called TransXChange instead of GTFS. There are multiple projects <a href="https://github.com/search?utf8=%E2%9C%93&q=transxchange+to+gtfs&type=">attempting this conversion</a> but we have not yet used any of them successfully. If you have done such a conversion on Linux and want to help, please contact us.
         p Technically, we do have the trains from Belfast down to the Irish border.
       li
+        p Q. What about Virginia Railway Express (VRE)?
+        p A. We'll add them as soon as they fix their shape files to be bidirectional. Right now <i>shape_pt_sequence</i> only increases for trains heading into DC, which violates the GTFS spec. Or maybe we'll add a bunch of custom code to try reversing them in memory, which is probably what other developers have done.
+      li
         p Q. I picked an agency and it has no service dates.
         p A. That's because we failed to update the GTFS feed for that agency. Sorry.
-
   script(src="https://code.jquery.com/jquery-3.2.1.min.js")
   script(src="https://maps.googleapis.com/maps/api/js?sensor=false")
   script(src="/pikaday/pikaday.js")
