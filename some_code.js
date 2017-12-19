@@ -20,8 +20,8 @@ function shapesForStoptimePair (stopT1, stopT2, stops, shapes) {
 exports.shapesForStoptimePair = shapesForStoptimePair;
 
 function useShapeDistance (stopT1, stopT2, shapes) {
-  if (stopT1.shape_dist_traveled === undefined ||
-      stopT2.shape_dist_traveled === undefined) {
+  if (stopT1.shape_dist_traveled === undefined || !stopT1.shape_dist_traveled ||
+      stopT2.shape_dist_traveled === undefined || !stopT2.shape_dist_traveled) {
     return false;
   }
   for (var i = 1; i < shapes.length; i++){
