@@ -629,7 +629,16 @@ function formatAjaxDeparture(departure) {
            departure_desc: departure_desc }
 }
 
+function prependZeroIfNecessary(departureStr) {
+  if (departureStr[1] == ':') return ("0" + departureStr);
+  else return departureStr;
+}
+
 function sortByDepartureDesc(departures) {
+  for (var i=0; i< departures.length; i++) {
+    departures[i].departure_desc = prependZeroIfNecessary(
+      departures[i].departure_desc);
+  }
   return departures.sort(function (a, b) {
     if (a.departure_desc < b.departure_desc) return -1;
     if (a.departure_desc > b.departure_desc) return 1;
