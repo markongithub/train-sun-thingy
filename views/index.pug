@@ -39,7 +39,7 @@ html
       li
         p Q. So you handle timezones and DST correctly?
         p A. Mostly, we think. If you pick a trip near sunrise or sunset, you may see its sun behavior change when your country goes through its DST shift. That's expected.
-        p Two cases we don't handle are trips that take place DURING the DST shift (but it should be dark then, right?) or trips spanning multiple time zones (as on Amtrak or Eurostar).
+        p Two cases we don't handle are trips that take place DURING the DST shift (but it should be dark then, right?) or trips spanning multiple time zones (which is why we have no Amtrak or Eurostar for the time being).
       li
         p Q. What about tunnels?
         p A. We don't know anything about tunnels, tall buildings, mountains, or any other object that gets between the sun and a vehicle. GTFS includes latitude and longitude but not altitude. It would be possible, but very difficult, to pull all the relevant terrain data out of whatever source Google Earth uses.
