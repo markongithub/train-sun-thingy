@@ -39,6 +39,12 @@ describe('main module', function() {
         defaultDate, "11:55:00", defaultTimeZone);
       assert.equal(expected.getTime(), actual.getTime());
     });
+    it('handles dates after midnight', function() {
+      var expected = new Date(2017, 10, 6, 5, 55, 0); // expressed in UTC
+      var actual = MyCode.transitTimeToRealDate(
+        defaultDate, "24:55:00", defaultTimeZone); // 0055 = 5:55 UTC
+      assert.equal(expected.getTime(), actual.getTime());
+    });
   });
 
   describe('atan2ToSuncalc', function() {

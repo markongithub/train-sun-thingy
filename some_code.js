@@ -147,14 +147,15 @@ function segmentMidpoint (shape1, shape2) {
 }
 
 function transitTimeToRealDate (dateObj, timeStr, timeZone) {
-  // If we pass in a time that's after midnight, this code kills all humans.
   if (timeZone === undefined) throw new Error("You must specify a time zone.");
   var hourMinSec = timeStr.split(':'); // Also assuming this works!
+  var dayOffset = Math.floor(hourMinSec[0] / 24);
+  hourMinSec[0] = hourMinSec[0] % 24;
   var momentArray = [
     dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), hourMinSec[0],
     hourMinSec[1], hourMinSec[2]];
   // console.log(momentArray);
-  return new Date(moment.tz(momentArray, timeZone));
+  return new Date(moment.tz(momentArray, timeZone).add(dayOffset, "days"));
 }
 exports.transitTimeToRealDate = transitTimeToRealDate;
 
