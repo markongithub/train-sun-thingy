@@ -104,6 +104,7 @@ function populateVerdict() {
     console.log("Response from server: " + verdict);
     $("#verdict").html(verdict);
   });
+  $("#mapDate")[0].value = tripDate;
   populateMap(tripDate);
 }
 
