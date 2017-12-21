@@ -37,6 +37,7 @@ function repopulateDatesAndSourceStopsFromAgency() {
     for (var i=0; i < data.length; i++) {
       // console.log("Appending " + data[i].stop_name);
       var newOpt = new Option(data[i]);
+      if (i==1) newOpt.selected = true;
       dates.append(newOpt);
     }
   });
