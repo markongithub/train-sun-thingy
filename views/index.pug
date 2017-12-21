@@ -45,11 +45,14 @@ html
         p A. We don't know anything about tunnels, tall buildings, mountains, or any other object that gets between the sun and a vehicle. GTFS includes latitude and longitude but not altitude. It would be possible, but very difficult, to pull all the relevant terrain data out of whatever source Google Earth uses.
       li
         p Q. Why no UK trains? UK trains are cool.
-        p A. They are, but their data is exported as something called TransXChange instead of GTFS. There are multiple projects <a href="https://github.com/search?utf8=%E2%9C%93&q=transxchange+to+gtfs&type=">attempting this conversion</a> but we have not yet used any of them successfully. If you have done such a conversion on Linux and want to help, please contact us.
+        p A. They are, but their data is exported as something called TransXChange instead of GTFS. There are multiple projects <a href="https://github.com/search?utf8=%E2%9C%93&q=transxchange+to+gtfs&type=">attempting this conversion</a> but we have not yet used any of them successfully. We are probably going to write our own. If you are one of our good friends or relatives in the UK, we have intentionally not emailed you this site yet.
         p Technically, we do have the trains from Belfast down to the Irish border.
       li
-        p Q. What about Virginia Railway Express (VRE)?
-        p A. We'll add them as soon as they fix their shape files to be bidirectional. Right now <i>shape_pt_sequence</i> only increases for trains heading into DC, which violates the GTFS spec. Or maybe we'll add a bunch of custom code to try reversing them in memory, which is probably what other developers have done.
+        p Q. What about this other railway I like?
+        ul
+          li RATP: They have no shapefiles.
+          li South Shore Line: they have no GTFS.
+          li VRE: We will add them as soon as they fix their shape files to be bidirectional. Right now <i>shape_pt_sequence</i> only increases for trains heading into DC, which violates the GTFS spec. Or maybe we'll add a bunch of custom code to try reversing them in memory, which is probably what other developers have done.
       li
         p Q. I picked an agency and it has no service dates.
         p A. That's because we failed to update the GTFS feed for that agency. Sorry.
