@@ -21,6 +21,7 @@
     "@mapbox/geojson-extent": "^0.3.2",
     "express": "^4.16.2",
     "geojson": "^0.5.0",
+    "greenlock-express": "^2.0.12",
     "gtfs": "^1.1.1",
     "mocha": "^4.0.1",
     "moment-timezone": "^0.5.14",

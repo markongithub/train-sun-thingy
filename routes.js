@@ -59,4 +59,16 @@ app.get('/geojson', function (req, res) {
    });
 })
 
-app.listen(8080, () => console.log('Example app listening on port 8080!'))
+require('greenlock-express').create({
+
+  server: 'staging'
+
+, email: // edit locally
+
+, agreeTos: true
+
+, approveDomains: // edit locally []
+
+, app: app
+
+}).listen(8080, 8443);
