@@ -5,8 +5,7 @@ const agencyKey = process.argv[2];
 const filePath = process.argv[3];
 
 const config = {
-  // I could make this a CLI option too. But not now.
-  mongoUrl: 'mongodb://localhost:27017/',
+  mongoUrl: process.argv[4],
   agencies: [
     {
       agency_key: agencyKey,
