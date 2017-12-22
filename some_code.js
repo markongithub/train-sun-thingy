@@ -391,7 +391,7 @@ function getAllTripDataP (agencyKey, tripID) {
       outputStats += ("x" + output.shapes[0].length);
     }
     outputStats += " shapes";
-    console.log(outputStats);
+    // console.log(outputStats);
     return output;
   });
 }
@@ -411,7 +411,6 @@ exports.dateRange = dateRange;
 function getYearOfTripsP(agencyKey, tripID, startDate, fromStop, toStop) {
   const tripDataP = getAllTripDataP(agencyKey, tripID);
   return tripDataP.then(tripData => {
-    console.log("Working on time zone " + tripData.timeZone);
     var dates = dateRange(startDate, 365); // Sucks if it's a leap year.
     var result = new Array(365);
     for (var i=0; i< dates.length; i++) {
