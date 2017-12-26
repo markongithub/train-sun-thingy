@@ -58,6 +58,7 @@ function repopulateTripsFromDateAndSourceStop() {
   const sourceStops = $("#sourceStop");
   const trips = $("#trip");
   clearEverythingAfterSourceStop();
+  if (!newDate || !newSource) return;
   $("#mapDate")[0].value = newDate;
   console.log("I made the mapDate " + $("#mapDate")[0].value);
   $.getJSON("/trips",
@@ -70,6 +71,7 @@ function repopulateTripsFromDateAndSourceStop() {
     }
   });
 }
+$('#date').change(repopulateTripsFromDateAndSourceStop);
 $('#sourceStop').change(repopulateTripsFromDateAndSourceStop);
 
 function repopulateDestinationsFromTrip() {

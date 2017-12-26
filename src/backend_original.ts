@@ -5,7 +5,7 @@ var gtfs = require('gtfs');
 var moment = require('moment-timezone');
 var suncalc = require('suncalc');
 
-var exports = module.exports = {};
+var exports = module.exports;
 
 process.on('unhandledRejection', function onError(err) {
      throw err;
@@ -172,7 +172,7 @@ function durationsForShapeList (stopT1, stopT2, shapes, dateObj, timeZone) {
   var segmentFractions = segmentDistances.map(d => d / totalDistance);
   var dateA = transitTimeToRealDate(dateObj, stopT1.departure_time, timeZone);
   var dateB = transitTimeToRealDate(dateObj, stopT2.departure_time, timeZone);
-  var duration = dateB - dateA;
+  var duration = dateB.getTime() - dateA.getTime();
   var segmentDurations = segmentFractions.map(f => f * duration);
   return segmentDurations;
 }
@@ -313,28 +313,27 @@ function stoptimesAlongRoute(stopID1, stopID2, routeStoptimes, allStops) {
   throw ("We didn't find our two stopIDs in the stop times.");
 }
 
-function addObjects(o1, o2) {
-  // This function assumes o1 and o2 have the same keys and kills all humans
-  // if they do not.
-  var result = new Object();
-  var keys =  Object.keys(o1);
-  for (var i=0; i < keys.length; i++) {
-    var key = keys[i];
-    result[key] = o1[key] + o2[key];
+function addArrays(a1, a2) {
+  // This would be one line in a language with a "zipWith" function.
+  console.assert(a1.length == a2.length, "Arrays must be of equal length.");
+  var result = new Array(a1.length);
+  for (var i=0; i < result.length; i++) {
+    result[i] = a1[i] + a2[i];
   }
   return result;
 }
 
 function sunStatusAlongRoute(stopID1, stopID2, routeStoptimes,
                              allStops, allShapes, dateObj, timeZone) {
-  var curStatus = new Array(Object.keys(sunStatus).length).fill(0);
+  var curStatus: number[] = new Array(
+    Object.keys(sunStatus).length).fill(0);
   var stoptimes = stoptimesAlongRoute(stopID1, stopID2, routeStoptimes,
                                       allStops);
   if (stoptimes.length < 2) throw "found less than 2 stoptimes on route.";
   for (var i=1; i < stoptimes.length; i++) {
     var nextStatus = sunTimesForStoptimePair(
       stoptimes[i-1], stoptimes[i], allStops, allShapes, dateObj, timeZone);
-    curStatus = addObjects(curStatus, nextStatus);
+    curStatus = addArrays(curStatus, nextStatus);
   }
   return curStatus;
 }
@@ -492,15 +491,18 @@ function getServicesForDateP(agencyKey, dateObj) {
     agency_key: agencyKey, start_date: {$lte: dateYYYYMMDD},
     end_date: {$gte: dateYYYYMMDD}};
   calendarReq[dayOfWeekLC] = 1;
+  var calendarP;
   if (agencyKey == "septa-rail") {
     // We have to special case this stuff because of leading spaces that
     // violate the GTFS spec. Philadelphia freedom, I love you. Yes I do.
-    calendarReq = {agency_key: agencyKey};
-    calendarReq[" start_date"] = {$lte: dateYYYYMMDD};
-    calendarReq[" end_date"] =  {$gte: dateYYYYMMDD};
-    calendarReq[" " + dayOfWeekLC] = "1";
+    const crapDateField = " " + dayOfWeekLC;
+    var crapCalendarReq = {"agency_key": agencyKey,
+                           " start_date": {$lte: dateYYYYMMDD},
+                           " end_date" : {$gte: dateYYYYMMDD},
+                           crapDateField : "1"};
+    calendarP = gtfs.getCalendars(crapCalendarReq);
   }
-  const calendarP = gtfs.getCalendars(calendarReq);
+  else calendarP = gtfs.getCalendars(calendarReq);
   const calendarDateP = gtfs.getCalendarDates({
     agency_key: agencyKey, date: dateYYYYMMDD});
   return Promise.all([calendarP, calendarDateP]).then(results => {

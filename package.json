@@ -27,6 +27,10 @@
     "moment-timezone": "^0.5.14",
     "pikaday": "^1.7.0",
     "pug": "^2.0.0-rc.4",
-    "suncalc": "^1.8.0"
+    "suncalc": "^1.8.0",
+    "typescript": "^1.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^8.5.2"
   }
 }

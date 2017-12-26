@@ -1,14 +1,14 @@
 version: "2"
 
 services:
-  app:
-    build: .
-    command: node routes.js
-    ports:
-      - "127.0.0.1:8080:8080"
-    depends_on:
-      - mongo
-    restart: always
+#  app:
+#    build: .
+#    command: node routes.js
+#    ports:
+#      - "127.0.0.1:8080:8080"
+#    depends_on:
+#      - mongo
+#    restart: always
 
   mongo:
     image: mongo
