@@ -1,8 +1,9 @@
 const express = require('express')
 const app = express()
 const gtfs = require('gtfs');
-const MyCode = require('./some_code');
+const MyCode = require('./backend_original');
 const mongoose = require('mongoose');
+const path = require('path');
 
 const config = {
   mongoUrl: process.argv[2],
@@ -12,7 +13,7 @@ const config = {
 mongoose.Promise = global.Promise;
 mongoose.connect(config.mongoUrl, {useMongoClient: true});
 
-app.use(express.static('public'))
+app.use(express.static(path.join(__dirname, "public")))
 app.use('/pikaday',
         express.static('node_modules/pikaday'))
 
