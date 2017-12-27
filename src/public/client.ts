@@ -53,13 +53,13 @@ $('#agencyKey').change(repopulateDatesAndSourceStopsFromAgency);
 
 function repopulateTripsFromDateAndSourceStop() {
   const agencyKey = $("#agencyKey").val();
-  const newDate = $("#date").val();
+  const newDate = $("#date").val().toString();
   const newSource = $("#sourceStop").val();
   const sourceStops = $("#sourceStop");
   const trips = $("#trip");
   clearEverythingAfterSourceStop();
-  $("#mapDate")[0].value = newDate;
-  console.log("I made the mapDate " + $("#mapDate")[0].value);
+  if (!newDate || !newSource) return;
+  (<HTMLInputElement>$("#mapDate")[0]).value = newDate;
   $.getJSON("/trips",
             {agencyKey: agencyKey, date: newDate, sourceStop: newSource},
             function(data) {
@@ -70,6 +70,7 @@ function repopulateTripsFromDateAndSourceStop() {
     }
   });
 }
+$('#date').change(repopulateTripsFromDateAndSourceStop);
 $('#sourceStop').change(repopulateTripsFromDateAndSourceStop);
 
 function repopulateDestinationsFromTrip() {
@@ -92,7 +93,7 @@ $('#trip').change(repopulateDestinationsFromTrip);
 
 function populateVerdict() {
   const agencyKey = $("#agencyKey").val();
-  const tripDate = $("#date").val();
+  const tripDate = $("#date").val().toString();
   const sourceStop = $("#sourceStop").val();
   const destStop = $("#destinationStop").val();
   const trip = $("#trip").val();
@@ -105,7 +106,7 @@ function populateVerdict() {
     console.log("Response from server: " + verdict);
     $("#verdict").html(verdict);
   });
-  $("#mapDate")[0].value = tripDate;
+  (<HTMLInputElement>$("#mapDate")[0]).value = tripDate;
   populateMap(tripDate);
 }
 
