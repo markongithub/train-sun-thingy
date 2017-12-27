@@ -17,7 +17,8 @@ app.use('/pikaday',
         express.static('node_modules/pikaday'))
 
 app.set('view engine', 'pug')
-app.get('/', function (req, res) {
+app.get('/', function (req, res) { res.redirect('/trainsunthingy'); })
+app.get('/trainsunthingy', function (req, res) {
    MyCode.getAgencyKeysP().then(result => res.render('index', { title: 'Train sun thingy', agencyKeys: result }))
 })
 
