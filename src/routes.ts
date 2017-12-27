@@ -4,14 +4,10 @@ const gtfs = require('gtfs');
 const MyCode = require('./backend_original');
 const mongoose = require('mongoose');
 const path = require('path');
-
-const config = {
-  mongoUrl: process.argv[2],
-//  mongoUrl: 'mongodb://localhost:27017/',
-};
+const config = require('./config')
 
 mongoose.Promise = global.Promise;
-mongoose.connect(config.mongoUrl, {useMongoClient: true});
+mongoose.connect(config.mongoURL, {useMongoClient: true});
 
 app.use(express.static(path.join(__dirname, "public")))
 app.use('/pikaday',
@@ -60,4 +56,16 @@ app.get('/geojson', function (req, res) {
    });
 })
 
-app.listen(8080, () => console.log('Example app listening on port 8080!'))
+if (config.ssl) {
+  require('greenlock-express').create({
+  server: config.letsEncryptServer
+, email: config.letsEncryptContact
+, agreeTos: true
+, approveDomains: config.letsEncryptDomains
+, debug: true
+, app: app
+  }).listen(80, 443);
+}
+else {
+  app.listen(8080, () => console.log('Example app listening on port 8080!'));
+}
