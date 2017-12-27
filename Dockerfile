@@ -8,4 +8,4 @@ RUN tsc
 
 COPY . .
 EXPOSE 8080
-CMD ["node", "tsDist/routes.js", "mongodb://mongo:27017/"]
+CMD ["node", "tsDist/routes.js"]
