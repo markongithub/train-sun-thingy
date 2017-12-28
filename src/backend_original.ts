@@ -717,7 +717,7 @@ exports.getSubsequentStopsP = getSubsequentStopsP;
 
 function getAgencyKeysP() {
   return gtfs.getAgencies().then(agencies => Array.from(new Set(agencies.map(
-    a => a.agency_key))));
+    a => a.agency_key))).sort());
 }
 exports.getAgencyKeysP = getAgencyKeysP;
 
