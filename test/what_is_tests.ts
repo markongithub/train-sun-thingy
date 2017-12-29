@@ -27,7 +27,7 @@ describe('main module', function() {
           testStopsSEPTA, testShapesSEPTA[0]);
       // The shapes begin at Gravers...
       assert.deepEqual([-75.201663,40.07738], septaResult[0]['loc']);
-      assert.deepEqual([-75.206885,40.081073],
+      assert.deepEqual([-75.207095,40.081078],
                        septaResult[septaResult.length - 1]['loc']);
     });
   });
@@ -122,7 +122,7 @@ describe('main module', function() {
       var result = MyCode.sunTimesForStoptimePair(
         testStoptimesSEPTA[13], testStoptimesSEPTA[14],
         testStopsSEPTA, testShapesSEPTA[0], defaultDate, defaultTimeZone);
-      assert.deepEqual([120000,0,0,0], result);
+      assert.deepEqual([120002,0,0,0], result);
     });
   });
 
@@ -131,13 +131,13 @@ describe('main module', function() {
       var result = MyCode.sunStatusAlongRoute(
         90719, 90720, testStoptimesSEPTA, testStopsSEPTA, testShapesSEPTA[0],
         defaultDate, defaultTimeZone);
-      assert.deepEqual([120000,0,0,0], result);
+      assert.deepEqual([120002,0,0,0], result);
     });
     it('works for more stops', function() {
       var result = MyCode.sunStatusAlongRoute(
         90718, 90720, testStoptimesSEPTA, testStopsSEPTA, testShapesSEPTA[0],
         defaultDate, defaultTimeZone);
-      assert.deepEqual([179999,0,0,0], result);
+      assert.deepEqual([180002,0,0,0], result);
     });
   });
 });
