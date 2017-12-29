@@ -591,6 +591,7 @@ function combineStoptimeWithTripP(stoptime) {
     console.assert(moreStoptimes.length > 1, "Arg why no more stoptimes?");
     const trip = trips[0];
     const lastStoptime = moreStoptimes[moreStoptimes.length - 1];
+    const terminatesHere = (lastStoptime.stop_id == stoptime.stop_id);
     // God have mercy on me.
     const routeP = gtfs.getRoutes({agency_key: stoptime.agency_key,
                                    route_id: trip.route_id});
@@ -612,6 +613,7 @@ function combineStoptimeWithTripP(stoptime) {
                route_short_name: routes[0].route_short_name,
                route_long_name: routes[0].route_long_name,
                last_stop_name: stops[0].stop_name,
+               terminates_here: terminatesHere,
                direction_id: trip.direction_id };
     });
   });
@@ -660,10 +662,14 @@ exports.getDeparturesForStopAndDateAjaxP = getDeparturesForStopAndDateAjaxP;
 
 function getDeparturesForStopAndDateP(agencyKey, stopID, dateObj) {
   const stoptimesP = getStoptimesForStopAndDateP(agencyKey, stopID, dateObj);
-  return stoptimesP.then(
-    stoptimes => Promise.all(stoptimes.map(combineStoptimeWithTripP)));
+  return stoptimesP.then(refineAndFilterStoptimes);
 }
 exports.getDeparturesForStopAndDateP = getDeparturesForStopAndDateP;
+
+function refineAndFilterStoptimes(stoptimes) {
+  return Promise.all(stoptimes.map(combineStoptimeWithTripP)).then(
+    departures => departures.filter(d => !d['terminates_here']));
+}
 
 function stopIDAndName(stop) {
   return {stop_id: stop.stop_id, stop_name: stop.stop_name};
