@@ -139,20 +139,6 @@ describe('main module', function() {
         defaultDate, defaultTimeZone);
       assert.deepEqual([179999,0,0,0], result);
     });
-    it('still works on some NJT data', function() {
-      var result = MyCode.sunStatusAlongRoute(
-        145, 87, stoptimesResult, undefined, shapeResult[0], defaultDate,
-        defaultTimeZone);
-      assert.deepEqual([360000,0,0,0], result); // precision still bad here
-    });
-
-    it('works all the way to NYP', function() {
-      var result = MyCode.sunStatusAlongRoute(
-        145, 105, stoptimesResult, undefined, shapeResult[0], defaultDate,
-        defaultTimeZone);
-      assert.deepEqual([379941,2080063,0,0], result);
-    });
-
   });
 });
 
