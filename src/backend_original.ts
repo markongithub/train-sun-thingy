@@ -484,14 +484,16 @@ function getGeoJSONAjaxP(
 exports.getGeoJSONAjaxP = getGeoJSONAjaxP;
 
 function getServicesForDateP(agencyKey, dateObj) {
-  const dateYYYYMMDD = [dateObj.getFullYear(),dateObj.getMonth() + 1,
-                        dateObj.getDate()].join('');
+  // Seriously, this is what mozilla.org says we should do.
+  const dateYYYYMMDD = (dateObj.getFullYear() * 10000 +
+                        (dateObj.getMonth() + 1) * 100 +
+                        dateObj.getDate()).toString();
   const dayOfWeekLC = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday',
                        'friday', 'saturday'][dateObj.getDay()]
   var calendarReq = {
     agency_key: agencyKey, start_date: {$lte: dateYYYYMMDD},
     end_date: {$gte: dateYYYYMMDD}};
-  calendarReq[dayOfWeekLC] = 1;
+  calendarReq[dayOfWeekLC] = "1";
   var calendarP;
   if (agencyKey == "septa-rail") {
     // We have to special case this stuff because of leading spaces that
@@ -499,14 +501,17 @@ function getServicesForDateP(agencyKey, dateObj) {
     const crapDateField = " " + dayOfWeekLC;
     var crapCalendarReq = {"agency_key": agencyKey,
                            " start_date": {$lte: dateYYYYMMDD},
-                           " end_date" : {$gte: dateYYYYMMDD},
-                           crapDateField : "1"};
+                           " end_date" : {$gte: dateYYYYMMDD}};
+    crapCalendarReq[crapDateField] = "1";
+    // console.log("Our exact calendar request: ", crapCalendarReq);
     calendarP = gtfs.getCalendars(crapCalendarReq);
   }
   else calendarP = gtfs.getCalendars(calendarReq);
   const calendarDateP = gtfs.getCalendarDates({
     agency_key: agencyKey, date: dateYYYYMMDD});
   return Promise.all([calendarP, calendarDateP]).then(results => {
+    // console.log("result: ", results[0].length, " calendars and ",
+    //            results[1].length, " calendar dates.");
     var services = new Set(results[0].map(o => o.service_id));
     for (var i=0; i<results[1].length; i++) {
       const exceptionService = results[1][i].service_id;
