@@ -16,7 +16,10 @@ app.use('/pikaday',
 app.set('view engine', 'pug')
 app.get('/', function (req, res) { res.redirect('/trainsunthingy'); })
 app.get('/trainsunthingy', function (req, res) {
-   MyCode.getAgencyKeysP().then(result => res.render('index', { title: 'Train sun thingy', agencyKeys: result }))
+  MyCode.getAgencyKeysP().then(result => res.render('index', {
+    title: 'Train sun thingy',
+    mapsKey: config.mapsKey,
+    agencyKeys: result }))
 })
 
 app.get('/dates', function (req, res) {
