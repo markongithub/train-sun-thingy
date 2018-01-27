@@ -5,3 +5,6 @@ services:
     ports:
       - 80:80
       - 443:443
+    volumes:
+      - /mnt/ebs01/letsencrypt:/root/letsencrypt
+      - /mnt/ebs01/gtfs:/root/gtfs
