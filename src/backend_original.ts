@@ -494,37 +494,39 @@ function getServicesForDateP(agencyKey, dateObj) {
     agency_key: agencyKey, start_date: {$lte: dateYYYYMMDD},
     end_date: {$gte: dateYYYYMMDD}};
   calendarReq[dayOfWeekLC] = "1";
-  var calendarP;
-  if (agencyKey == "septa-rail") {
-    // We have to special case this stuff because of leading spaces that
-    // violate the GTFS spec. Philadelphia freedom, I love you. Yes I do.
-    const crapDateField = " " + dayOfWeekLC;
-    var crapCalendarReq = {"agency_key": agencyKey,
-                           " start_date": {$lte: dateYYYYMMDD},
-                           " end_date" : {$gte: dateYYYYMMDD}};
-    crapCalendarReq[crapDateField] = "1";
-    // console.log("Our exact calendar request: ", crapCalendarReq);
-    calendarP = gtfs.getCalendars(crapCalendarReq);
-  }
-  else calendarP = gtfs.getCalendars(calendarReq);
+  // We have to special case this stuff because of leading spaces that
+  // violate the GTFS spec. Philadelphia freedom, I love you. Yes I do.
+  var crapCalendarReqSEPTA = {"agency_key": agencyKey,
+                              " start_date": {$lte: dateYYYYMMDD},
+                              " end_date" : {$gte: dateYYYYMMDD}};
+  crapCalendarReqSEPTA[" " + dayOfWeekLC] = "1";
   const calendarDateP = gtfs.getCalendarDates({
     agency_key: agencyKey, date: dateYYYYMMDD});
-  return Promise.all([calendarP, calendarDateP]).then(results => {
-    // console.log("result: ", results[0].length, " calendars and ",
-    //            results[1].length, " calendar dates.");
-    var services = new Set(results[0].map(o => o.service_id));
-    for (var i=0; i<results[1].length; i++) {
-      const exceptionService = results[1][i].service_id;
-      if (results[1][i].exception_type == 1) {
+  return Promise.all([gtfs.getCalendars(calendarReq),
+                      gtfs.getCalendars(crapCalendarReqSEPTA),
+                      calendarDateP]).then(results => {
+    console.log("result: ", results[0].length, " calendars, ",
+                results[1].length, " busted SEPTA/Metra calendars, and ",
+                results[2].length, " calendar dates.");
+    var calendars;
+    if (results[0].length) {
+      calendars = results[0];
+    }
+    else calendars = results[1];
+    const calendarDates = results[2];
+    var services = new Set(calendars.map(o => o.service_id));
+    for (var i=0; i < calendarDates.length; i++) {
+      const exceptionService = calendarDates[i].service_id;
+      if (calendarDates[i].exception_type == 1) {
         // console.log("Calendar exception: adding service " + exceptionService);
         services.add(exceptionService);
       }
-      else if (results[1][i].exception_type == 2) {
+      else if (calendarDates[i].exception_type == 2) {
         // console.log("Calendar exception: deleting service " + exceptionService);
         services.delete(exceptionService);
       }
       else console.error("Invalid exception_type: " +
-                         results[1][i].exception_type);
+                         calendarDates[i].exception_type);
     }
     return Array.from(services);
   });
