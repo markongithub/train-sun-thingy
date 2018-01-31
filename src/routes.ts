@@ -5,6 +5,7 @@ const MyCode = require('./backend_original');
 const mongoose = require('mongoose');
 const path = require('path');
 const config = require('./config')
+const morgan = require('morgan')
 
 mongoose.Promise = global.Promise;
 mongoose.connect(config.mongoURL, {useMongoClient: true});
@@ -12,6 +13,8 @@ mongoose.connect(config.mongoURL, {useMongoClient: true});
 app.use(express.static(path.join(__dirname, "public")))
 app.use('/pikaday',
         express.static('node_modules/pikaday'))
+
+app.use(morgan('combined'))
 
 app.set('view engine', 'pug')
 app.get('/', function (req, res) { res.redirect('/trainsunthingy'); })
