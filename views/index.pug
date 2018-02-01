@@ -56,6 +56,9 @@ html
       li
         p Q. I picked an agency and it has no service dates.
         p A. That's because we failed to update the GTFS feed for that agency. Sorry.
+      li
+        p Q. MongoDB? Really?
+        p A. It's required in order to use <a href="https://github.com/BlinkTagInc/node-gtfs">node-gtfs</a>. And Docker makes it gloriously easy to deploy.
   script(src="https://code.jquery.com/jquery-3.2.1.min.js")
   script(src="https://maps.googleapis.com/maps/api/js?key=" + mapsKey)
   script(src="/pikaday/pikaday.js")
