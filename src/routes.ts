@@ -8,7 +8,7 @@ const config = require('./config')
 const morgan = require('morgan')
 
 mongoose.Promise = global.Promise;
-mongoose.connect(config.mongoURL, {useMongoClient: true});
+mongoose.connect(config.mongoURL);
 
 app.use(express.static(path.join(__dirname, "public")))
 app.use('/pikaday',
