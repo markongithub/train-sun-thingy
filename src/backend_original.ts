@@ -734,6 +734,23 @@ function getAgencyKeysP() {
 }
 exports.getAgencyKeysP = getAgencyKeysP;
 
+function agencyFreshnessP(agencyKey) {
+  const datesP = nearbyDatesWithServiceP(agencyKey, 31);
+  return datesP.then(dates => makeLengthDict(agencyKey, dates));
+}
+
+function makeLengthDict(agencyKey, dates) {
+  const output = {agencyKey: agencyKey, upcomingDates: dates.length};
+  console.log(output);
+  return output;
+}
+
+function dataFreshnessP() {
+  return getAgencyKeysP().then(agencies => Promise.all(
+    agencies.map(agencyFreshnessP)));
+}
+exports.dataFreshnessP = dataFreshnessP;
+
 function getTimeZoneForAgencyP(agencyKey) {
   return gtfs.getAgencies({agency_key: agencyKey}).then(agencies => {
     if (agencies.length < 1) throw new Error(

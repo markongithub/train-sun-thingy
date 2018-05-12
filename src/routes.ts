@@ -63,6 +63,10 @@ app.get('/geojson', function (req, res) {
    });
 })
 
+app.get('/freshness', function (req, res) {
+   MyCode.dataFreshnessP().then(result => res.send(result));
+})
+
 if (config.ssl) {
   require('greenlock-express').create({
   server: config.letsEncryptServer
