@@ -538,10 +538,10 @@ function hasServiceOnDateP(agencyKey, dateObj) {
     services => services.length > 0);
 }
 
-function nearbyDatesWithServiceP(agencyKey) {
+function nearbyDatesWithServiceP(agencyKey, horizon) {
   var startDate = new Date(Date.now());
   startDate.setDate(startDate.getDate() - 1); // start from yesterday
-  const possibleDates = dateRange(startDate, 8);
+  const possibleDates = dateRange(startDate, horizon);
   const boolPromises = possibleDates.map(d => hasServiceOnDateP(agencyKey, d));
   return Promise.all(boolPromises).then(bools => {
     var output = [];
@@ -553,7 +553,7 @@ function nearbyDatesWithServiceP(agencyKey) {
 }
 
 function getDates8601P(agencyKey) {
-  return nearbyDatesWithServiceP(agencyKey).then(dates => dates.map(
+  return nearbyDatesWithServiceP(agencyKey, 8).then(dates => dates.map(
     d => (d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate())));
 }
 exports.getDates8601P = getDates8601P;
