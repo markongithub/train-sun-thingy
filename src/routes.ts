@@ -11,7 +11,7 @@ mongoose.Promise = global.Promise;
 mongoose.connect(config.mongoURL, {useNewUrlParser: true});
 
 var publicPath = path.join(__dirname, "public")
-# Delete this log when Glitch is stable
+// Delete this log when Glitch is stable
 console.log("Static files are stored in ", publicPath);
 app.use(express.static(publicPath))
 app.use('/pikaday',
