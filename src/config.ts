@@ -1,6 +1,6 @@
 var config = {
-  mongoURL: 'mongodb://mongo:27017/'
-, mapsKey: ''
+  mongoURL: process.env.MONGO_URL
+, mapsKey: process.env.MAPS_KEY
 , ssl: false
 , letsEncryptServer: 'staging'
 , letsEncryptContact: ''
