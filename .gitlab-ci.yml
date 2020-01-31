@@ -3,6 +3,7 @@
     stages:
       - build
       - test
+      - containerize
 
     cache:
       paths:
@@ -19,3 +20,9 @@
     testing_testing:
       stage: test
       script: npm test
+
+    build_container:
+      stage: containerize
+      script:
+        - docker info
+        - docker build -t myimage .
