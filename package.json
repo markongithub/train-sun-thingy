@@ -20,24 +20,24 @@
   "homepage": "https://github.com/markongithub/train-sun-thingy#readme",
   "dependencies": {
     "@mapbox/geojson-extent": "^0.3.2",
-    "express": "^4.16.2",
+    "express": "^4.17.1",
     "geojson": "^0.5.0",
-    "greenlock-express": "^2.0.12",
-    "gtfs": "^1.4.0",
-    "mocha": "^4.0.1",
-    "moment-timezone": "^0.5.14",
+    "greenlock-express": "^2.7.18",
+    "gtfs": "^1.9.3",
+    "mocha": "^4.1.0",
+    "moment-timezone": "^0.5.27",
     "mongoose": "^5.4.16",
-    "morgan": "^1.9.0",
-    "pikaday": "^1.7.0",
-    "pug": "^2.0.0-rc.4",
+    "morgan": "^1.9.1",
+    "pikaday": "^1.8.0",
+    "pug": "^2.0.4",
     "suncalc": "^1.8.0",
     "typescript": "^3.3.3333"
   },
   "devDependencies": {
-    "@types/googlemaps": "^3.30.3",
-    "@types/jquery": "^3.2.17",
+    "@types/googlemaps": "^3.39.2",
+    "@types/jquery": "^3.3.31",
     "@types/node": "^8.10.59",
-    "@types/pikaday": "^1.6.3",
+    "@types/pikaday": "^1.7.4",
     "ts-node": "^4.1.0"
   }
 }
