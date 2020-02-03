@@ -1,28 +1,7 @@
-    image: node:latest
+before_script:
+  - docker info
 
-    stages:
-      - build
-      - test
-      - containerize
-
-    cache:
-      paths:
-        - node_modules/
-
-    install_dependencies:
-      stage: build
-      script:
-        - npm install
-      artifacts:
-        paths:
-          - node_modules/
-
-    testing_testing:
-      stage: test
-      script: npm test
-
-    build_container:
-      stage: containerize
-      script:
-        - docker info
-        - docker build -t myimage .
+build_image:
+  script:
+    - docker build -t my-docker-image .
+    - docker run my-docker-image npm test
