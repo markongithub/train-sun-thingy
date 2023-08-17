@@ -1,14 +1,17 @@
 const express = require('express')
 const app = express()
-const gtfs = require('gtfs');
+import { importGtfs } from 'gtfs';
+import { readFile } from 'fs/promises';
 const MyCode = require('./backend_original');
-const mongoose = require('mongoose');
 const path = require('path');
 const config = require('./config')
 const morgan = require('morgan')
 
-mongoose.Promise = global.Promise;
-mongoose.connect(config.mongoURL, {useNewUrlParser: true});
+try {
+	  await importGtfs(config);
+} catch (error) {
+	  console.error(error);
+}
 
 var publicPath = path.join(__dirname, "public")
 // Delete this log when Glitch is stable
