@@ -5,9 +5,6 @@ var gtfs = require('gtfs');
 var moment = require('moment-timezone');
 var suncalc = require('suncalc');
 
-export {};
-var exports = module.exports;
-
 process.on('unhandledRejection', function onError(err) {
      throw err;
 });

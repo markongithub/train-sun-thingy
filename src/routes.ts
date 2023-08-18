@@ -1,4 +1,4 @@
-const express = require('express')
+import express from "express";
 const app = express()
 import { importGtfs } from 'gtfs';
 import { readFile } from 'fs/promises';
