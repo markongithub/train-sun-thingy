@@ -2,7 +2,7 @@ import express from "express";
 const app = express()
 import { importGtfs } from 'gtfs';
 import { readFile } from 'fs/promises';
-const MyCode = require('./backend_original');
+import * as MyCode from './backend_original.js';
 const path = require('path');
 const config = require('./config')
 const morgan = require('morgan')

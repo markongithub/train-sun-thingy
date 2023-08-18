@@ -5,6 +5,8 @@ var gtfs = require('gtfs');
 var moment = require('moment-timezone');
 var suncalc = require('suncalc');
 
+export { getAgencyKeysP, getDates8601P, getSourceStopsP, getDeparturesForStopAndDateAjaxP, getSubsequentStopsP, getYearVerdictAjaxP, getGeoJSONAjaxP, dataFreshnessP };
+
 process.on('unhandledRejection', function onError(err) {
      throw err;
 });
