@@ -1,7 +1,7 @@
 "use strict";
-var geojson = require('geojson');
-var geojsonExtent = require('@mapbox/geojson-extent');
-var gtfs = require('gtfs');
+import * as geojson from 'geojson';
+import * as geojsonExtent from '@mapbox/geojson-extent';
+import * as gtfs from 'gtfs';
 var moment = require('moment-timezone');
 var suncalc = require('suncalc');
 
@@ -360,20 +360,17 @@ exports.sunDetailsAlongRoute = sunDetailsAlongRoute;
 // I can get stoptimes
 // from the stoptimes I can get stops
 
-function getStoptimesThenStopsP (agencyKey, tripID) {
-  // This is my first ever attempt at JS promises. I am sorry.
-  return gtfs.getStoptimes({agency_key: agencyKey, trip_id: tripID})
-  .then(stoptimes => {
-    var stopIDs = stoptimes.map(o => o.stop_id);
-    // I don't think this getStops call needs to worry about parent_stations.
-    return gtfs.getStops({agency_key: agencyKey, stop_id: {$in: stopIDs}})
-    .then(stops => [stoptimes, stops]);
-  });
+function getStoptimesThenStops (agencyKey, tripID) {
+  const stoptimes = gtfs.getStoptimes({agency_key: agencyKey, trip_id: tripID})
+  const stopIDs = stoptimes.map(o => o.stop_id);
+  // I don't think this getStops call needs to worry about parent_stations.
+  const stops = gtfs.getStops({agency_key: agencyKey, stop_id: stopIDs});
+  return [stoptimes, stops];
 }
 
 function getAllTripDataP (agencyKey, tripID) {
   var p1 = gtfs.getShapes({agency_key: agencyKey, trip_id: tripID});
-  var p2 = getStoptimesThenStopsP(agencyKey, tripID);
+  var p2 = getStoptimesThenStops(agencyKey, tripID);
   var p3 = getTimeZoneForAgencyP(agencyKey);
   return Promise.all([p1, p2, p3]).then(results => {
     if ((results.length != 3) || (results[1].length != 2)) {
@@ -482,7 +479,7 @@ function getGeoJSONAjaxP(
 }
 exports.getGeoJSONAjaxP = getGeoJSONAjaxP;
 
-function getServicesForDateP(agencyKey, dateObj) {
+function getServicesForDate(db, agencyKey, dateObj) {
   // Seriously, this is what mozilla.org says we should do.
   const dateYYYYMMDD = (dateObj.getFullYear() * 10000 +
                         (dateObj.getMonth() + 1) * 100 +
@@ -493,44 +490,43 @@ function getServicesForDateP(agencyKey, dateObj) {
     agency_key: agencyKey, start_date: {$lte: dateYYYYMMDD},
     end_date: {$gte: dateYYYYMMDD}};
   calendarReq[dayOfWeekLC] = "1";
+  const servicesNormal = db
+    .prepare(
+      'SELECT service_id from calendar WHERE agency_key = $agencyKey AND start_date <= $date AND end_date >= $date AND $dayOfWeek = 1'
+    )
+    .all({ date: dateYYYYMMDD, agency_key: agencyKey, dayOfWeek: dayOfWeekLC });
   // We have to special case this stuff because of leading spaces that
   // violate the GTFS spec. Philadelphia freedom, I love you. Yes I do.
-  var crapCalendarReqSEPTA = {"agency_key": agencyKey,
-                              " start_date": {$lte: dateYYYYMMDD},
-                              " end_date" : {$gte: dateYYYYMMDD}};
-  crapCalendarReqSEPTA[" " + dayOfWeekLC] = "1";
-  const calendarDateP = gtfs.getCalendarDates({
+  const servicesSEPTA = db
+    .prepare(
+      'SELECT service_id from calendar WHERE agency_key = $agencyKey AND " start_date" <= $date AND " end_date" >= $date AND " $dayOfWeek" = 1'
+    )
+    .all({ date: dateYYYYMMDD, agency_key: agencyKey, dayOfWeek: dayOfWeekLC });
+  const calendarDates = gtfs.getCalendarDates({
     agency_key: agencyKey, date: dateYYYYMMDD});
-  return Promise.all([gtfs.getCalendars(calendarReq),
-                      gtfs.getCalendars(crapCalendarReqSEPTA),
-                      calendarDateP]).then(results => {
-    console.log("result: ", results[0].length, " calendars, ",
-                results[1].length, " busted SEPTA/Metra calendars, and ",
-                results[2].length, " calendar dates.");
-    var calendars;
-    if (results[0].length) {
-      calendars = results[0];
+  console.log("result: ", servicesNormal.length, " service IDs, ",
+                servicesSEPTA.length, " busted SEPTA/Metra service IDs, and ",
+                calendarDates.length, " calendar dates.");
+  var services;
+  if (servicesNormal.length) {
+    services = servicesNormal;
+  }
+  else services = servicesSEPTA;
+  for (var i=0; i < calendarDates.length; i++) {
+    const exceptionService = calendarDates[i].service_id;
+    if (calendarDates[i].exception_type == 1) {
+      // console.log("Calendar exception: adding service " + exceptionService);
+      services.add(exceptionService);
     }
-    else calendars = results[1];
-    const calendarDates = results[2];
-    var services = new Set(calendars.map(o => o.service_id));
-    for (var i=0; i < calendarDates.length; i++) {
-      const exceptionService = calendarDates[i].service_id;
-      if (calendarDates[i].exception_type == 1) {
-        // console.log("Calendar exception: adding service " + exceptionService);
-        services.add(exceptionService);
-      }
-      else if (calendarDates[i].exception_type == 2) {
-        // console.log("Calendar exception: deleting service " + exceptionService);
-        services.delete(exceptionService);
-      }
-      else console.error("Invalid exception_type: " +
-                         calendarDates[i].exception_type);
+    else if (calendarDates[i].exception_type == 2) {
+      // console.log("Calendar exception: deleting service " + exceptionService);
+      services.delete(exceptionService);
     }
-    return Array.from(services);
-  });
+    else console.error("Invalid exception_type: " +
+                        calendarDates[i].exception_type);
+  }
+  return Array.from(services);
 }
-exports.getServicesForDateP = getServicesForDateP;
 
 function hasServiceOnDateP(agencyKey, dateObj) {
   return getServicesForDateP(agencyKey, dateObj).then(
