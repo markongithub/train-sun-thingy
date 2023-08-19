@@ -22,6 +22,7 @@
   "dependencies": {
     "@mapbox/geojson-extent": "^1.0.1",
     "@types/untildify": "^4.0.0",
+    "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "geojson": "^0.5.0",
     "greenlock-express": "^2.7.18",

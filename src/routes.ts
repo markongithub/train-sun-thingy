@@ -1,3 +1,4 @@
+import "dotenv/config.js";
 import express from "express";
 const app = express()
 import { openDb } from 'gtfs';
