@@ -1,23 +1,13 @@
-const gtfs = require('gtfs');
-const mongoose = require('mongoose');
-
-const agencyKey = process.argv[2];
-const filePath = process.argv[3];
+import { updateGtfsRealtime } from 'gtfs';
 
 const config = {
-  mongoUrl: process.argv[4],
+  sqlitePath: process.argv[4],
   agencies: [
     {
-      agency_key: agencyKey,
-      path: filePath,
-    }
-  ]
+      path: process.argv[3],
+    },
+  ],
 };
 
-gtfs.import(config)
-.then(() => {
-  console.log('Import Successful');
-})
-.catch(err => {
-  console.error(err);
-});
+
+await updateGtfsRealtime(config);

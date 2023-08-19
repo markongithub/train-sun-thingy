@@ -2,8 +2,8 @@
 import * as geojson from 'geojson';
 import * as geojsonExtent from '@mapbox/geojson-extent';
 import * as gtfs from 'gtfs';
-var moment = require('moment-timezone');
-var suncalc = require('suncalc');
+import * as moment from 'moment-timezone';
+import * as suncalc from 'suncalc';
 
 export { getAgencyKeys, getDates8601, getSourceStops, getDeparturesForStopAndDateAjax, getSubsequentStops, getYearVerdictAjax, getGeoJSONAjax, dataFreshness };
 
@@ -17,7 +17,6 @@ function shapesForStoptimePair(stopT1, stopT2, stops, shapes) {
   }
   return shapesForStoptimePairUsingLatLon(stopT1, stopT2, stops, shapes);
 }
-exports.shapesForStoptimePair = shapesForStoptimePair;
 
 function useShapeDistance(stopT1, stopT2, shapes) {
   if (stopT1.shape_dist_traveled === undefined || !stopT1.shape_dist_traveled ||
@@ -134,8 +133,6 @@ function atan2ToSuncalc(radians) {
   }
 }
 
-exports.atan2ToSuncalc = atan2ToSuncalc;
-
 function segmentDistance(shape1, shape2) {
   return latLonDistance(shape1.shape_pt_lat, shape1.shape_pt_lon,
     shape2.shape_pt_lat, shape2.shape_pt_lon);
@@ -155,9 +152,10 @@ function transitTimeToRealDate(dateObj, timeStr, timeZone) {
     dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), hourMinSec[0],
     hourMinSec[1], hourMinSec[2]];
   // console.log(momentArray);
-  return new Date(moment.tz(momentArray, timeZone).add(dayOffset, "days"));
+  const first = moment.tz(momentArray, timeZone);
+  const second = first.add(dayOffset, "days");
+  return second.toDate();
 }
-exports.transitTimeToRealDate = transitTimeToRealDate;
 
 function addWhyDoIHaveToWriteThis(x, y) {
   return x + y;
@@ -176,7 +174,6 @@ function durationsForShapeList(stopT1, stopT2, shapes, dateObj, timeZone) {
   var segmentDurations = segmentFractions.map(f => f * duration);
   return segmentDurations;
 }
-exports.durationsForShapeList = durationsForShapeList;
 
 var sunStatus = {
   LEFT: 0,
@@ -184,7 +181,6 @@ var sunStatus = {
   CENTER: 2,
   DARK: 3
 }
-exports.sunStatus = sunStatus;
 
 function sunnySideVerdict(statuses) {
   if (statuses[sunStatus.LEFT] == statuses[sunStatus.RIGHT]) {
@@ -201,7 +197,6 @@ function sunnySideVerdict(statuses) {
   }
   else return "this trip has more sunlight on the right side of the vehicle.";
 }
-exports.sunnySideVerdict = sunnySideVerdict;
 
 function sunStatusForSegment(startDate, endDate, startShape, endShape) {
   // console.log(startDate + " " + endDate);
@@ -215,7 +210,6 @@ function sunStatusForSegment(startDate, endDate, startShape, endShape) {
   if (sunData.altitude < 0) return sunStatus.DARK;
   return relativeToHeading(heading, sunData.azimuth);
 }
-exports.sunStatusForSegment = sunStatusForSegment;
 
 // https://stackoverflow.com/questions/4467539/javascript-modulo-gives-a-negative-result-for-negative-numbers
 function modJavascriptWhyWhyWhy(n, m) {
@@ -234,7 +228,6 @@ function relativeToHeading(heading, azimuth) {
   }
   return sunStatus.RIGHT;
 }
-exports.relativeToHeading = relativeToHeading;
 
 
 function sunTimesForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
@@ -259,7 +252,6 @@ function sunTimesForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
   }
   return statusTime;
 }
-exports.sunTimesForStoptimePair = sunTimesForStoptimePair;
 
 function sunDetailsForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
   dateObj, timeZone) {
@@ -286,7 +278,6 @@ function sunDetailsForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
   return results;
   //return geojson.parse(results, {'LineString': 'line'});
 }
-exports.sunDetailsForStoptimePair = sunDetailsForStoptimePair;
 
 function stoptimesAlongRoute(stopID1, stopID2, routeStoptimes, allStops) {
   var result = [];
@@ -339,7 +330,6 @@ function sunStatusAlongRoute(stopID1, stopID2, routeStoptimes,
   }
   return curStatus;
 }
-exports.sunStatusAlongRoute = sunStatusAlongRoute;
 
 function sunDetailsAlongRoute(stopID1, stopID2, routeStoptimes,
   allStops, allShapes, dateObj, timeZone) {
@@ -355,7 +345,6 @@ function sunDetailsAlongRoute(stopID1, stopID2, routeStoptimes,
   return geojson.parse(result, { 'LineString': 'line' });
   // return result;
 }
-exports.sunDetailsAlongRoute = sunDetailsAlongRoute;
 
 // if I have a tripID
 // I can get shapes
@@ -401,7 +390,6 @@ function dateRange(startDate, days) {
   }
   return result;
 }
-exports.dateRange = dateRange;
 
 function getYearOfTrips(agencyKey, tripID, startDate, fromStop, toStop) {
   const tripData = getAllTripData(agencyKey, tripID);
@@ -456,7 +444,6 @@ function formatMultiDayResults(results) {
   }
   return output;
 }
-exports.formatMultiDayResults = formatMultiDayResults;
 
 function getYearVerdictAjax(
   agencyKey, tripID, startDate8601, fromStop, toStop) {

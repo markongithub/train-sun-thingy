@@ -3,11 +3,14 @@ const app = express()
 import { openDb } from 'gtfs';
 import { readFile } from 'fs/promises';
 import * as MyCode from './backend_original.js';
-const path = require('path');
-const config = require('./config')
-const morgan = require('morgan')
+import * as path from 'path';
+import { config } from './config.js';
+import logger from 'morgan';
 const db = openDb(config);
 
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 var publicPath = path.join(__dirname, "public")
 // Delete this log when Glitch is stable
@@ -16,7 +19,7 @@ app.use(express.static(publicPath))
 app.use('/pikaday',
   express.static('node_modules/pikaday'))
 
-app.use(morgan('combined'))
+app.use(logger('combined'))
 
 app.set('view engine', 'pug')
 app.get('/', function (req, res) { res.redirect('/trainsunthingy'); })

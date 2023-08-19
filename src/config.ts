@@ -1,10 +1,9 @@
 var config = {
-  mongoURL: process.env.MONGO_URL
+  sqlitePath: "./whatever.sqlite"
 , mapsKey: process.env.MAPS_KEY
 , ssl: false
 , letsEncryptServer: 'staging'
 , letsEncryptContact: ''
 , letsEncryptDomains: []
 }
-export {}
-module.exports = config
+export { config }
