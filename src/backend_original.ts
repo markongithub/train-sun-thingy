@@ -2,7 +2,7 @@
 import * as geojson from 'geojson';
 import * as geojsonExtent from '@mapbox/geojson-extent';
 import * as gtfs from 'gtfs';
-import * as moment from 'moment-timezone';
+import moment from 'moment-timezone';
 import * as suncalc from 'suncalc';
 
 export { getDates8601, getSourceStops, getDeparturesForStopAndDateAjax, getSubsequentStops, getYearVerdictAjax, getGeoJSONAjax, dataFreshness };
@@ -11,7 +11,8 @@ process.on('unhandledRejection', function onError(err) {
   throw err;
 });
 
-function shapesForStoptimePair(stopT1, stopT2, stops, shapes) {
+
+function shapesForStoptimePair(stopT1, stopT2, stops, shapes: any[]) {
   if (useShapeDistance(stopT1, stopT2, shapes)) {
     return shapesForStoptimePairUsingDist(stopT1, stopT2, shapes);
   }
@@ -31,7 +32,7 @@ function useShapeDistance(stopT1, stopT2, shapes) {
   return true;
 }
 
-function shapesForStoptimePairUsingDist(st1, st2, shapes) {
+function shapesForStoptimePairUsingDist(st1, st2, shapes: any[]) {
   // can I assume shapes is sorted? I shall assume that. And regret it.
   var startShapeDistance = st1.shape_dist_traveled;
   var endShapeDistance = st2.shape_dist_traveled;
@@ -85,7 +86,7 @@ function fakeShapeFromStop(stop) {
 }
 
 function shapesForStoptimePairUsingLatLon(
-  stopT1, stopT2, stops, shapes) {
+  stopT1, stopT2, stops, shapes: any[]) {
   var stop1, stop2;
   for (var i = 0; i < stops.length; i++) {
     if (stops[i].stop_id == stopT1.stop_id) {
@@ -201,7 +202,7 @@ function sunnySideVerdict(statuses) {
 function sunStatusForSegment(startDate, endDate, startShape, endShape) {
   // console.log(startDate + " " + endDate);
   var sunLocation = segmentMidpoint(startShape, endShape);
-  var sunTime = (startDate.getTime() + endDate.getTime()) / 2;
+  var sunTime = new Date((startDate.getTime() + endDate.getTime()) / 2);
   var heading = vehicleHeading(startShape, endShape);
   // console.log("heading " + heading);
   var sunData = suncalc.getPosition(sunTime, sunLocation[0], sunLocation[1]);
@@ -253,7 +254,7 @@ function sunTimesForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
   return statusTime;
 }
 
-function sunDetailsForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
+function sunDetailsForStoptimePair(stoptime1, stoptime2, allStops, allShapes: any[],
   dateObj, timeZone) {
   var shapes = shapesForStoptimePair(stoptime1, stoptime2, allStops, allShapes);
   console.assert(shapes.length > 1, "Insufficient shapesForStoptimePair");
@@ -332,7 +333,7 @@ function sunStatusAlongRoute(stopID1, stopID2, routeStoptimes,
 }
 
 function sunDetailsAlongRoute(stopID1, stopID2, routeStoptimes,
-  allStops, allShapes, dateObj, timeZone) {
+  allStops, allShapes: any[], dateObj, timeZone) {
   var result = new Array();
   var stoptimes = stoptimesAlongRoute(stopID1, stopID2, routeStoptimes,
     allStops);
@@ -360,7 +361,7 @@ function getStoptimesThenStops(db, tripID) {
 }
 
 function getAllTripData(db, tripID) {
-  const shapes = gtfs.getShapes({ trip_id: tripID });
+  const shapes: Object[] = Array.from(gtfs.getShapes({ trip_id: tripID }));
   const [stoptimes, stops] = getStoptimesThenStops(db, tripID);
   const timeZone = getTimeZoneForAgency(db);
   const output = {
@@ -372,11 +373,12 @@ function getAllTripData(db, tripID) {
   var outputStats = (
     output.stoptimes.length + " stoptimes, " + output.stops.length +
     " stops, time zone " + output.timeZone + ", " + output.shapes.length);
-  if (output.shapes.length > 0) {
-    outputStats += ("x" + output.shapes[0].length);
-  }
+  // I don't remember why I did this.
+  // if (output.shapes.length > 0) {
+  //   outputStats += ("x" + output.shapes[0].length);
+  // }
   outputStats += " shapes";
-  // console.log(outputStats);
+  console.log(outputStats);
   return output;
 }
 
@@ -410,7 +412,7 @@ function getDetailsForTrip(db, tripID, startDate, fromStop, toStop) {
   console.log("Working on time zone " + tripData.timeZone);
   const geojson = sunDetailsAlongRoute(
     fromStop, toStop, tripData.stoptimes, tripData.stops,
-    tripData.shapes[0], startDate, tripData.timeZone);
+    tripData.shapes, startDate, tripData.timeZone);
   return geojsonExtent.bboxify(geojson);
 }
 
@@ -524,9 +526,10 @@ function getStoptimesForStopAndDate(db, stopID, dateObj) {
   });
   const possibleStopIDs = childStops.map(s => s.stop_id).concat([stopID]);
   console.log("Possible stop IDs: " + possibleStopIDs);
+  const tripIDs: string[] = Array.from(gtfs.getTrips({ service_id: serviceIDs }, ["trip_id"]).map(t => t.trip_id));
   return gtfs.getStoptimes({
     stop_id: possibleStopIDs,
-    service_id: serviceIDs
+    trip_id: tripIDs
   });
 }
 
@@ -627,11 +630,10 @@ function sortByStopName(stops) {
     return 0;
   });
 }
+
 function getSourceStops(db) {
-  // parent_station could be an empty string, or not there at all.
-  const stops = gtfs.getStops({
-    parent_station: [undefined, ""],
-  });
+  // I should filter out parent stations but I don't know how to do that right now.
+  const stops = gtfs.getStops();
   return sortByStopName(stops.map(stopIDAndName));
 }
 

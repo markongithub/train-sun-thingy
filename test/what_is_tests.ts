@@ -1,7 +1,7 @@
 "use strict";
 
 var assert = require('assert');
-var MyCode = require('../src/backend_original');
+import * as MyCode from '../src/backend_original.js';
 
 var testShapesSEPTA = require('./septa_test_shapes.json');
 var testStopsSEPTA = require('./septa_test_stops.json');
