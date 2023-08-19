@@ -5,7 +5,7 @@ import * as gtfs from 'gtfs';
 import * as moment from 'moment-timezone';
 import * as suncalc from 'suncalc';
 
-export { getAgencyKeys, getDates8601, getSourceStops, getDeparturesForStopAndDateAjax, getSubsequentStops, getYearVerdictAjax, getGeoJSONAjax, dataFreshness };
+export { getDates8601, getSourceStops, getDeparturesForStopAndDateAjax, getSubsequentStops, getYearVerdictAjax, getGeoJSONAjax, dataFreshness };
 
 process.on('unhandledRejection', function onError(err) {
   throw err;
@@ -351,19 +351,18 @@ function sunDetailsAlongRoute(stopID1, stopID2, routeStoptimes,
 // I can get stoptimes
 // from the stoptimes I can get stops
 
-function getStoptimesThenStops(agencyKey, tripID) {
-  const stoptimes = gtfs.getStoptimes({ agency_key: agencyKey, trip_id: tripID })
+function getStoptimesThenStops(db, tripID) {
+  const stoptimes = gtfs.getStoptimes({ trip_id: tripID })
   const stopIDs = stoptimes.map(o => o.stop_id);
   // I don't think this getStops call needs to worry about parent_stations.
-  const stops = gtfs.getStops({ agency_key: agencyKey, stop_id: stopIDs });
+  const stops = gtfs.getStops({ stop_id: stopIDs });
   return [stoptimes, stops];
 }
 
-function getAllTripData(agencyKey, tripID) {
-
-  const shapes = gtfs.getShapes({ agency_key: agencyKey, trip_id: tripID });
-  const [stoptimes, stops] = getStoptimesThenStops(agencyKey, tripID);
-  const timeZone = getTimeZoneForAgency(agencyKey);
+function getAllTripData(db, tripID) {
+  const shapes = gtfs.getShapes({ trip_id: tripID });
+  const [stoptimes, stops] = getStoptimesThenStops(db, tripID);
+  const timeZone = getTimeZoneForAgency(db);
   const output = {
     shapes: shapes,
     stoptimes: stoptimes,
@@ -391,8 +390,8 @@ function dateRange(startDate, days) {
   return result;
 }
 
-function getYearOfTrips(agencyKey, tripID, startDate, fromStop, toStop) {
-  const tripData = getAllTripData(agencyKey, tripID);
+function getYearOfTrips(db, tripID, startDate, fromStop, toStop) {
+  const tripData = getAllTripData(db, tripID);
   var dates = dateRange(startDate, 365); // Sucks if it's a leap year.
   var result = new Array(365);
   for (var i = 0; i < dates.length; i++) {
@@ -406,8 +405,8 @@ function getYearOfTrips(agencyKey, tripID, startDate, fromStop, toStop) {
   return result;
 }
 
-function getDetailsForTrip(agencyKey, tripID, startDate, fromStop, toStop) {
-  const tripData = getAllTripData(agencyKey, tripID);
+function getDetailsForTrip(db, tripID, startDate, fromStop, toStop) {
+  const tripData = getAllTripData(db, tripID);
   console.log("Working on time zone " + tripData.timeZone);
   const geojson = sunDetailsAlongRoute(
     fromStop, toStop, tripData.stoptimes, tripData.stops,
@@ -446,43 +445,38 @@ function formatMultiDayResults(results) {
 }
 
 function getYearVerdictAjax(
-  agencyKey, tripID, startDate8601, fromStop, toStop) {
+  db, tripID, startDate8601, fromStop, toStop) {
   const startDate = new Date(startDate8601);
-  return formatMultiDayResults(getYearOfTrips(agencyKey, tripID, startDate, fromStop, toStop));
+  return formatMultiDayResults(getYearOfTrips(db, tripID, startDate, fromStop, toStop));
 }
 
 function getGeoJSONAjax(
-  agencyKey, tripID, startDate8601, fromStop, toStop) {
+  db, tripID, startDate8601, fromStop, toStop) {
   const startDate = new Date(startDate8601);
-  return getDetailsForTrip(agencyKey, tripID, startDate, fromStop, toStop);
+  return getDetailsForTrip(db, tripID, startDate, fromStop, toStop);
 }
 
-function getServicesForDate(db, agencyKey, dateObj): string[] {
+function getServicesForDate(db, dateObj): string[] {
   // Seriously, this is what mozilla.org says we should do.
   const dateYYYYMMDD = (dateObj.getFullYear() * 10000 +
     (dateObj.getMonth() + 1) * 100 +
     dateObj.getDate()).toString();
   const dayOfWeekLC = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday',
     'friday', 'saturday'][dateObj.getDay()]
-  var calendarReq = {
-    agency_key: agencyKey, start_date: { $lte: dateYYYYMMDD },
-    end_date: { $gte: dateYYYYMMDD }
-  };
-  calendarReq[dayOfWeekLC] = "1";
   const servicesNormal = db
     .prepare(
-      'SELECT service_id from calendar WHERE agency_key = $agencyKey AND start_date <= $date AND end_date >= $date AND $dayOfWeek = 1'
+      'SELECT service_id from calendar WHERE start_date <= $date AND end_date >= $date AND $dayOfWeek = 1'
     )
-    .all({ date: dateYYYYMMDD, agency_key: agencyKey, dayOfWeek: dayOfWeekLC });
+    .all({ date: dateYYYYMMDD, dayOfWeek: dayOfWeekLC });
   // We have to special case this stuff because of leading spaces that
   // violate the GTFS spec. Philadelphia freedom, I love you. Yes I do.
   const servicesSEPTA = db
     .prepare(
-      'SELECT service_id from calendar WHERE agency_key = $agencyKey AND " start_date" <= $date AND " end_date" >= $date AND " $dayOfWeek" = 1'
+      'SELECT service_id from calendar WHERE " start_date" <= $date AND " end_date" >= $date AND " $dayOfWeek" = 1'
     )
-    .all({ date: dateYYYYMMDD, agency_key: agencyKey, dayOfWeek: dayOfWeekLC });
+    .all({ date: dateYYYYMMDD, dayOfWeek: dayOfWeekLC });
   const calendarDates = gtfs.getCalendarDates({
-    agency_key: agencyKey, date: dateYYYYMMDD
+    date: dateYYYYMMDD
   });
   console.log("result: ", servicesNormal.length, " service IDs, ",
     servicesSEPTA.length, " busted SEPTA/Metra service IDs, and ",
@@ -508,15 +502,15 @@ function getServicesForDate(db, agencyKey, dateObj): string[] {
   return Array.from(services);
 }
 
-function hasServiceOnDate(db, agencyKey, dateObj) {
-  return (getServicesForDate(db, agencyKey, dateObj).length) > 0;
+function hasServiceOnDate(db, dateObj) {
+  return (getServicesForDate(db, dateObj).length) > 0;
 }
 
-function nearbyDatesWithService(db, agencyKey, horizon) {
+function nearbyDatesWithService(db, horizon) {
   var startDate = new Date(Date.now());
   startDate.setDate(startDate.getDate() - 1); // start from yesterday
   const possibleDates = dateRange(startDate, horizon);
-  const bools = possibleDates.map(d => hasServiceOnDate(db, agencyKey, d));
+  const bools = possibleDates.map(d => hasServiceOnDate(db, d));
   var output = [];
   for (var i = 0; i < possibleDates.length; i++) {
     if (bools[i]) { output.push(possibleDates[i]); }
@@ -524,27 +518,25 @@ function nearbyDatesWithService(db, agencyKey, horizon) {
   return output;
 }
 
-function getDates8601(db, agencyKey) {
-  const dates = nearbyDatesWithService(db, agencyKey, 8);
+function getDates8601(db) {
+  const dates = nearbyDatesWithService(db, 8);
   return dates.map(
     d => (d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate()));
 }
 
-function getStoptimesForStopAndDate(db, agencyKey, stopID, dateObj) {
-  const serviceIDs = getServicesForDate(db, agencyKey, dateObj);
+function getStoptimesForStopAndDate(db, stopID, dateObj) {
+  const serviceIDs = getServicesForDate(db, dateObj);
   if (serviceIDs.length < 1) {
     console.error("No service for this date: " + dateObj + " Or it is SEPTA's fault.");
   }
   // We have to get all the children of stopID, if it has any. Then we return
   // stoptimes for both the parent and the children.
   const childStops = gtfs.getStops({
-    agency_key: agencyKey,
     parent_station: stopID
   });
   const possibleStopIDs = childStops.map(s => s.stop_id).concat([stopID]);
   console.log("Possible stop IDs: " + possibleStopIDs);
   return gtfs.getStoptimes({
-    agency_key: agencyKey,
     stop_id: possibleStopIDs,
     service_id: serviceIDs
   });
@@ -552,11 +544,9 @@ function getStoptimesForStopAndDate(db, agencyKey, stopID, dateObj) {
 
 function combineStoptimeWithTrip(stoptime) {
   const trips = gtfs.getTrips({
-    agency_key: stoptime.agency_key,
     trip_id: stoptime.trip_id
   });
   const moreStoptimes = gtfs.getStoptimes({
-    agency_key: stoptime.agency_key,
     trip_id: stoptime.trip_id
   });
   console.assert(trips.length == 1,
@@ -567,11 +557,9 @@ function combineStoptimeWithTrip(stoptime) {
   const terminatesHere = (lastStoptime.stop_id == stoptime.stop_id);
   // God have mercy on me.
   const routes = gtfs.getRoutes({
-    agency_key: stoptime.agency_key,
     route_id: trip.route_id
   });
   const stops = gtfs.getStops({
-    agency_key: stoptime.agency_key,
     stop_id: lastStoptime.stop_id
   });
   console.assert(routes.length == 1,
@@ -624,14 +612,14 @@ function sortByDepartureDesc(departures) {
     return 0;
   });
 }
-function getDeparturesForStopAndDateAjax(db, agencyKey, stopID, date8601) {
+function getDeparturesForStopAndDateAjax(db, stopID, date8601) {
   const dateObj = new Date(date8601);
-  const departures = getDeparturesForStopAndDate(db, agencyKey, stopID, dateObj);
+  const departures = getDeparturesForStopAndDate(db, stopID, dateObj);
   return sortByDepartureDesc(departures.map(formatAjaxDeparture));
 }
 
-function getDeparturesForStopAndDate(db, agencyKey, stopID, dateObj) {
-  const stoptimes = getStoptimesForStopAndDate(db, agencyKey, stopID, dateObj);
+function getDeparturesForStopAndDate(db, stopID, dateObj) {
+  const stoptimes = getStoptimesForStopAndDate(db, stopID, dateObj);
   return refineAndFilterStoptimes(stoptimes);
 }
 
@@ -651,30 +639,28 @@ function sortByStopName(stops) {
     return 0;
   });
 }
-function getSourceStops(db, agencyKey) {
+function getSourceStops(db) {
   // parent_station could be an empty string, or not there at all.
   const stops = gtfs.getStops({
-    agency_key: agencyKey,
     parent_station: [undefined, ""],
   });
   return sortByStopName(stops.map(stopIDAndName));
 }
 
-function lookupStopName(db, agencyKey, stopID) {
-  const stops = gtfs.getStops({ agency_key: agencyKey, stop_id: stopID });
+function lookupStopName(db, stopID) {
+  const stops = gtfs.getStops({ stop_id: stopID });
   console.assert(stops.length == 1, "I expected exactly one stop.");
   return stopIDAndName(stops[0]);
 }
 
-function getSubsequentStops(agencyKey, stopID, tripID) {
+function getSubsequentStops(db, stopID, tripID) {
   const stoptimes = gtfs.getStoptimes({
-    agency_key: agencyKey,
     trip_id: tripID
   });
   // stopID is a parent. But these stoptimes point to children.
   const allStopIDsOnTrip = stoptimes.map(o => o.stop_id);
   const stops = gtfs.getStops(
-    { agency_key: agencyKey, stop_id: allStopIDsOnTrip });
+    { stop_id: allStopIDsOnTrip });
   var stopsByStopID = {};
   for (var i = 0; i < stops.length; i++) {
     stopsByStopID[stops[i].stop_id] = stops[i];
@@ -690,15 +676,8 @@ function getSubsequentStops(agencyKey, stopID, tripID) {
     }));
   return output;
 }
-
-function getAgencyKeys() {
-  const agencies = gtfs.getAgencies();
-  return Array.from(new Set(agencies.map(
-    a => a.agency_key))).sort();
-}
-
 function agencyFreshness(db, agencyKey) {
-  const dates = nearbyDatesWithService(db, agencyKey, 31);
+  const dates = nearbyDatesWithService(db, 31);
   return makeLengthDict(agencyKey, dates);
 }
 
@@ -708,16 +687,16 @@ function makeLengthDict(agencyKey, dates) {
   return output;
 }
 
-function dataFreshness() {
-  return getAgencyKeys().map(agencyFreshness);
+function dataFreshness(dbMap) {
+  return dbMap.keys().map((agencyKey) => agencyFreshness(dbMap.get(agencyKey), agencyKey));
 }
 
-function getTimeZoneForAgency(agencyKey) {
-  const agencies = gtfs.getAgencies({ agency_key: agencyKey });
+function getTimeZoneForAgency(db) {
+  const agencies = gtfs.getAgencies({}, [], [], {db: db});
   if (agencies.length < 1) throw new Error(
-    "Agency key not found: " + agencyKey);
+    "No agencies found.");
   if (agencies[0].agency_timezone === undefined) {
-    console.log(agencyKey + " has no timezone set, defaulting to Eastern.");
+    console.log(agencies[0].agency_name + " has no timezone set, defaulting to US/Eastern.");
     return "US/Eastern";
   }
   return agencies[0].agency_timezone;
