@@ -1,9 +1,9 @@
 "use strict";
-import * as geojson from 'geojson';
+import geojson from 'geojson';
 import * as geojsonExtent from '@mapbox/geojson-extent';
 import * as gtfs from 'gtfs';
 import moment from 'moment-timezone';
-import * as suncalc from 'suncalc';
+import suncalc from 'suncalc';
 
 export { getDates8601, getSourceStops, getDeparturesForStopAndDateAjax, getSubsequentStops, getYearVerdictAjax, getGeoJSONAjax, dataFreshness };
 
@@ -233,6 +233,7 @@ function relativeToHeading(heading, azimuth) {
 
 function sunTimesForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
   dateObj, timeZone) {
+  // console.log("In sunTimesForStoptimePair, allShapes is of type " + typeof(allShapes));
   var statusTime = new Array(Object.keys(sunStatus).length).fill(0);
   var shapes = shapesForStoptimePair(stoptime1, stoptime2, allStops, allShapes);
   console.assert(shapes.length > 1, "Insufficient shapesForStoptimePair");
@@ -343,6 +344,7 @@ function sunDetailsAlongRoute(stopID1, stopID2, routeStoptimes,
       stoptimes[i - 1], stoptimes[i], allStops, allShapes, dateObj, timeZone);
     result = result.concat(curDetails);
   }
+  console.log("I am about to call geojson.parse which is of type " + geojson.parse);
   return geojson.parse(result, { 'LineString': 'line' });
   // return result;
 }
@@ -396,12 +398,13 @@ function getYearOfTrips(db, tripID, startDate, fromStop, toStop) {
   const tripData = getAllTripData(db, tripID);
   var dates = dateRange(startDate, 365); // Sucks if it's a leap year.
   var result = new Array(365);
+  console.log("In getYearOfTrips, tripData.shapes is of type " + typeof(tripData.shapes) + " and tripData.shapes[0] is of type " + typeof(tripData.shapes[0]));
   for (var i = 0; i < dates.length; i++) {
     result[i] = {
       date: dates[i],
       sunStatus: sunStatusAlongRoute(
         fromStop, toStop, tripData.stoptimes, tripData.stops,
-        tripData.shapes[0], dates[i], tripData.timeZone)
+        tripData.shapes, dates[i], tripData.timeZone)
     };
   }
   return result;
@@ -410,10 +413,10 @@ function getYearOfTrips(db, tripID, startDate, fromStop, toStop) {
 function getDetailsForTrip(db, tripID, startDate, fromStop, toStop) {
   const tripData = getAllTripData(db, tripID);
   console.log("Working on time zone " + tripData.timeZone);
-  const geojson = sunDetailsAlongRoute(
+  const geojsonNamingCollision = sunDetailsAlongRoute(
     fromStop, toStop, tripData.stoptimes, tripData.stops,
     tripData.shapes, startDate, tripData.timeZone);
-  return geojsonExtent.bboxify(geojson);
+  return geojsonExtent.bboxify(geojsonNamingCollision);
 }
 
 function formatMultiDayResults(results) {

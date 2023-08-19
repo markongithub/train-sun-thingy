@@ -13,6 +13,7 @@ const __dirname = path.dirname(__filename);
 
 var publicPath = path.join(__dirname, "public")
 
+console.log(process.env);
 var dbMap = new Map();
 config.agencies.forEach((agency) => {
   dbMap.set(agency.key, openDb({ sqlitePath: agency.sqlitePath }));
