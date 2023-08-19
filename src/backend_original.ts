@@ -463,29 +463,17 @@ function getServicesForDate(db, dateObj): string[] {
     dateObj.getDate()).toString();
   const dayOfWeekLC = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday',
     'friday', 'saturday'][dateObj.getDay()]
+  console.log("dateYYYYMMDD: " + dateYYYYMMDD + ", dayOfWeekLC: " + dayOfWeekLC);
   const servicesNormal = db
     .prepare(
-      'SELECT service_id from calendar WHERE start_date <= $date AND end_date >= $date AND $dayOfWeek = 1'
+      // a column name can't be a parameter! I spent over an hour debugging this!
+      'SELECT service_id from calendar WHERE start_date <= $date AND end_date >= $date AND ' + dayOfWeekLC + ' = 1'
     )
-    .all({ date: dateYYYYMMDD, dayOfWeek: dayOfWeekLC });
-  // We have to special case this stuff because of leading spaces that
-  // violate the GTFS spec. Philadelphia freedom, I love you. Yes I do.
-  const servicesSEPTA = db
-    .prepare(
-      'SELECT service_id from calendar WHERE " start_date" <= $date AND " end_date" >= $date AND " $dayOfWeek" = 1'
-    )
-    .all({ date: dateYYYYMMDD, dayOfWeek: dayOfWeekLC });
-  const calendarDates = gtfs.getCalendarDates({
-    date: dateYYYYMMDD
-  });
-  console.log("result: ", servicesNormal.length, " service IDs, ",
-    servicesSEPTA.length, " busted SEPTA/Metra service IDs, and ",
+    .all({ date: dateYYYYMMDD });
+  const calendarDates = gtfs.getCalendarDates({ date: dateYYYYMMDD });
+  console.log("result: ", servicesNormal.length, " service IDs, and ",
     calendarDates.length, " calendar dates.");
-  var services;
-  if (servicesNormal.length) {
-    services = servicesNormal;
-  }
-  else services = servicesSEPTA;
+  var services: Set<string> = new Set(servicesNormal.map((s) => s.service_id));
   for (var i = 0; i < calendarDates.length; i++) {
     const exceptionService = calendarDates[i].service_id;
     if (calendarDates[i].exception_type == 1) {
@@ -692,7 +680,7 @@ function dataFreshness(dbMap) {
 }
 
 function getTimeZoneForAgency(db) {
-  const agencies = gtfs.getAgencies({}, [], [], {db: db});
+  const agencies = gtfs.getAgencies({}, [], [], { db: db });
   if (agencies.length < 1) throw new Error(
     "No agencies found.");
   if (agencies[0].agency_timezone === undefined) {

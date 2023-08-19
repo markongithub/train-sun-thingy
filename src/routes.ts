@@ -15,7 +15,8 @@ var publicPath = path.join(__dirname, "public")
 
 var dbMap = new Map();
 config.agencies.forEach((agency) => {
-  dbMap.set(agency.key, openDb({sqlitePath: agency.sqlitePath}))
+  dbMap.set(agency.key, openDb({ sqlitePath: agency.sqlitePath }));
+  console.log("Set database in map for " + agency.key + " and now dbMap is of size " + dbMap.size);
 })
 
 // Delete this log when Glitch is stable
@@ -29,10 +30,12 @@ app.use(logger('combined'))
 app.set('view engine', 'pug')
 app.get('/', function (req, res) { res.redirect('/trainsunthingy'); })
 app.get('/trainsunthingy', function (req, res) {
+  const agencyKeys = Array.from(dbMap.keys());
+  console.log("agencyKeys: " + agencyKeys)
   return res.render('index', {
     title: 'Train sun thingy',
     mapsKey: config.mapsKey,
-    agencyKeys: dbMap.keys()
+    agencyKeys: agencyKeys
   });
 })
 
