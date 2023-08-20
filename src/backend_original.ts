@@ -355,15 +355,15 @@ function sunDetailsAlongRoute(stopID1, stopID2, routeStoptimes,
 // from the stoptimes I can get stops
 
 function getStoptimesThenStops(db, tripID) {
-  const stoptimes = gtfs.getStoptimes({ trip_id: tripID })
+  const stoptimes = gtfs.getStoptimes({ trip_id: tripID }, [], [], { db: db })
   const stopIDs = stoptimes.map(o => o.stop_id);
   // I don't think this getStops call needs to worry about parent_stations.
-  const stops = gtfs.getStops({ stop_id: stopIDs });
+  const stops = gtfs.getStops({ stop_id: stopIDs }, [], [], { db: db });
   return [stoptimes, stops];
 }
 
 function getAllTripData(db, tripID) {
-  const shapes: Object[] = Array.from(gtfs.getShapes({ trip_id: tripID }));
+  const shapes: Object[] = Array.from(gtfs.getShapes({ trip_id: tripID }, [], [], { db: db }));
   const [stoptimes, stops] = getStoptimesThenStops(db, tripID);
   const timeZone = getTimeZoneForAgency(db);
   const output = {
@@ -475,7 +475,7 @@ function getServicesForDate(db, dateObj): string[] {
       'SELECT service_id from calendar WHERE start_date <= $date AND end_date >= $date AND ' + dayOfWeekLC + ' = 1'
     )
     .all({ date: dateYYYYMMDD });
-  const calendarDates = gtfs.getCalendarDates({ date: dateYYYYMMDD });
+  const calendarDates = gtfs.getCalendarDates({ date: dateYYYYMMDD }, [], [], { db: db });
   console.log("result: ", servicesNormal.length, " service IDs, and ",
     calendarDates.length, " calendar dates.");
   var services: Set<string> = new Set(servicesNormal.map((s) => s.service_id));
@@ -526,23 +526,23 @@ function getStoptimesForStopAndDate(db, stopID, dateObj) {
   // stoptimes for both the parent and the children.
   const childStops = gtfs.getStops({
     parent_station: stopID
-  });
+  }, [], [], { db: db });
   const possibleStopIDs = childStops.map(s => s.stop_id).concat([stopID]);
   console.log("Possible stop IDs: " + possibleStopIDs);
-  const tripIDs: string[] = Array.from(gtfs.getTrips({ service_id: serviceIDs }, ["trip_id"]).map(t => t.trip_id));
+  const tripIDs: string[] = Array.from(gtfs.getTrips({ service_id: serviceIDs }, ["trip_id"], [], { db: db }).map(t => t.trip_id));
   return gtfs.getStoptimes({
     stop_id: possibleStopIDs,
     trip_id: tripIDs
-  });
+  }, [], [], { db: db });
 }
 
-function combineStoptimeWithTrip(stoptime) {
+function combineStoptimeWithTrip(db, stoptime) {
   const trips = gtfs.getTrips({
     trip_id: stoptime.trip_id
-  });
+  }, [], [], { db: db });
   const moreStoptimes = gtfs.getStoptimes({
     trip_id: stoptime.trip_id
-  });
+  }, [], [], { db: db });
   console.assert(trips.length == 1,
     "I expected to get only one trip back. This is bad.");
   console.assert(moreStoptimes.length > 1, "Arg why no more stoptimes?");
@@ -552,10 +552,10 @@ function combineStoptimeWithTrip(stoptime) {
   // God have mercy on me.
   const routes = gtfs.getRoutes({
     route_id: trip.route_id
-  });
+  }, [], [], { db: db });
   const stops = gtfs.getStops({
     stop_id: lastStoptime.stop_id
-  });
+  }, [], [], { db: db });
   console.assert(routes.length == 1,
     "Expected only one route.");
   console.assert(stops.length == 1,
@@ -614,11 +614,11 @@ function getDeparturesForStopAndDateAjax(db, stopID, date8601) {
 
 function getDeparturesForStopAndDate(db, stopID, dateObj) {
   const stoptimes = getStoptimesForStopAndDate(db, stopID, dateObj);
-  return refineAndFilterStoptimes(stoptimes);
+  return refineAndFilterStoptimes(db, stoptimes);
 }
 
-function refineAndFilterStoptimes(stoptimes) {
-  const departures = stoptimes.map(combineStoptimeWithTrip);
+function refineAndFilterStoptimes(db, stoptimes) {
+  const departures = stoptimes.map(st => combineStoptimeWithTrip(db, st));
   return departures.filter(d => !d['terminates_here']);
 }
 
@@ -636,12 +636,12 @@ function sortByStopName(stops) {
 
 function getSourceStops(db) {
   // I should filter out parent stations but I don't know how to do that right now.
-  const stops = gtfs.getStops();
+  const stops = gtfs.getStops({}, [], [], { db: db });
   return sortByStopName(stops.map(stopIDAndName));
 }
 
 function lookupStopName(db, stopID) {
-  const stops = gtfs.getStops({ stop_id: stopID });
+  const stops = gtfs.getStops({ stop_id: stopID }, [], [], { db: db });
   console.assert(stops.length == 1, "I expected exactly one stop.");
   return stopIDAndName(stops[0]);
 }
@@ -649,11 +649,11 @@ function lookupStopName(db, stopID) {
 function getSubsequentStops(db, stopID, tripID) {
   const stoptimes = gtfs.getStoptimes({
     trip_id: tripID
-  });
+  }, [], [], { db: db });
   // stopID is a parent. But these stoptimes point to children.
   const allStopIDsOnTrip = stoptimes.map(o => o.stop_id);
   const stops = gtfs.getStops(
-    { stop_id: allStopIDsOnTrip });
+    { stop_id: allStopIDsOnTrip }, [], [], { db: db });
   var stopsByStopID = {};
   for (var i = 0; i < stops.length; i++) {
     stopsByStopID[stops[i].stop_id] = stops[i];
