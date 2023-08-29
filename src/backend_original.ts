@@ -344,7 +344,6 @@ function sunDetailsAlongRoute(stopID1, stopID2, routeStoptimes,
       stoptimes[i - 1], stoptimes[i], allStops, allShapes, dateObj, timeZone);
     result = result.concat(curDetails);
   }
-  console.log("I am about to call geojson.parse which is of type " + geojson.parse);
   return geojson.parse(result, { 'LineString': 'line' });
   // return result;
 }

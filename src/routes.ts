@@ -1,9 +1,10 @@
 import "dotenv/config.js";
 import express from "express";
 const app = express()
-import { openDb } from 'gtfs';
+import { getStops, openDb } from 'gtfs';
 import { readFile } from 'fs/promises';
 import * as MyCode from './backend_original.js';
+import * as fs from 'fs';
 import * as path from 'path';
 import { config } from './config.js';
 import logger from 'morgan';
@@ -16,10 +17,19 @@ var publicPath = path.join(__dirname, "public")
 
 console.log(process.env);
 var dbMap = new Map();
-config.agencies.forEach((agency) => {
-  dbMap.set(agency.key, openDb({ sqlitePath: agency.sqlitePath }));
-  console.log("Set database in map for " + agency.key + " and now dbMap is of size " + dbMap.size);
-})
+fs.readdir(config.sqliteStoragePath, function (err, files) {
+  if (err) throw err;
+  files.forEach(function (file) {
+    if (path.extname(file) == ".sqlite") {
+      const agencyKey = path.basename(file, ".sqlite");
+      const filePath = path.join(config.sqliteStoragePath, file);;
+      const dbObj = openDb({ sqlitePath: filePath });
+      dbMap.set(agencyKey, dbObj);
+      const stopCount = getStops({}, [], [], { db: dbObj }).length;
+      console.log("Set database in map for " + agencyKey + " at path " + filePath + " with " + stopCount + " stops and now dbMap is of size " + dbMap.size);
+    };
+  });
+});
 
 // Delete this log when Glitch is stable
 console.log("Static files are stored in ", publicPath);
