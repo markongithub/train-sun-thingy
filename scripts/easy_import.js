@@ -1,10 +1,10 @@
 import { importGtfs } from 'gtfs';
 
 const config = {
-  sqlitePath: process.argv[4],
+  sqlitePath: process.argv[3],
   agencies: [
     {
-      path: process.argv[3],
+      path: process.argv[2],
     },
   ],
   logFunction: function (text) {
