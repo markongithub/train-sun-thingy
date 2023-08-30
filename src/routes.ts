@@ -1,3 +1,4 @@
+console.log("Beginning imports...")
 import "dotenv/config.js";
 import express from "express";
 const app = express()
