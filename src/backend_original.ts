@@ -1,9 +1,10 @@
-"use strict";
-import geojson from 'geojson';
+// "use strict";
+const GeoJSON = require('geojson');
 import * as geojsonExtent from '@mapbox/geojson-extent';
 import * as gtfs from 'gtfs';
 import moment from 'moment-timezone';
-import suncalc from 'suncalc';
+import { getPosition } from 'suncalc';
+
 
 export { getDates8601, getSourceStops, getDeparturesForStopAndDateAjax, getSubsequentStops, getYearVerdictAjax, getGeoJSONAjax, dataFreshness };
 
@@ -205,7 +206,7 @@ function sunStatusForSegment(startDate, endDate, startShape, endShape) {
   var sunTime = new Date((startDate.getTime() + endDate.getTime()) / 2);
   var heading = vehicleHeading(startShape, endShape);
   // console.log("heading " + heading);
-  var sunData = suncalc.getPosition(sunTime, sunLocation[0], sunLocation[1]);
+  var sunData = getPosition(sunTime, sunLocation[0], sunLocation[1]);
   // console.log(sunLocation + " " + sunTime);
   // console.log(sunData);
   if (sunData.altitude < 0) return sunStatus.DARK;
@@ -278,7 +279,7 @@ function sunDetailsForStoptimePair(stoptime1, stoptime2, allStops, allShapes: an
     };
   }
   return results;
-  //return geojson.parse(results, {'LineString': 'line'});
+  //return GeoJSON.parse(results, {'LineString': 'line'});
 }
 
 function stoptimesAlongRoute(stopID1, stopID2, routeStoptimes, allStops) {
@@ -344,7 +345,7 @@ function sunDetailsAlongRoute(stopID1, stopID2, routeStoptimes,
       stoptimes[i - 1], stoptimes[i], allStops, allShapes, dateObj, timeZone);
     result = result.concat(curDetails);
   }
-  return geojson.parse(result, { 'LineString': 'line' });
+  return GeoJSON.parse(result, { 'LineString': 'line' });
   // return result;
 }
 
