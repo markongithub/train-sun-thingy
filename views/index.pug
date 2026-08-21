@@ -1,7 +1,6 @@
 html
   head
     title Train Sun Thingy
-    link(rel="stylesheet" href="/pikaday/css/pikaday.css")
   body
     h1 Train Sun Thingy
     p It tells you which side of your train (or bus) will get more sunlight.
@@ -58,5 +57,4 @@ html
         p A. That's because we failed to update the GTFS feed for that agency. Sorry.
   script(src="https://code.jquery.com/jquery-3.2.1.min.js")
   script(src="https://maps.googleapis.com/maps/api/js?key=" + mapsKey)
-  script(src="/pikaday/pikaday.js")
-  script(src="/client.js")
+  script(type="module" src="/client.js")

@@ -38,6 +38,10 @@ function clearEverythingAfterDestinationStop() {
 function repopulateDatesAndSourceStopsFromAgency() {
   const newKey = $(this).val();
   console.log("the agency key is now " + newKey);
+  if (!newKey) {
+    console.log("... so I am not going to do anything.");
+    return;
+  }
   const dates = $("#date");
   const sourceStops = $("#sourceStop");
   clearEverythingAfterAgency();
@@ -50,14 +54,16 @@ function repopulateDatesAndSourceStopsFromAgency() {
     }
   });
   $.getJSON("/stops", {agencyKey: newKey}, function(data) {
+    console.log("Starting to deal with " + data.length + " stops.");
     for (var i=0; i < data.length; i++) {
       // console.log("Appending " + data[i].stop_name);
       var newOpt = new Option(data[i].stop_name, data[i].stop_id);
       sourceStops.append(newOpt);
     }
   });
+  console.log("I think I have finished repopulateDatesAndSourceStopsFromAgency");
 }
-$('#agencyKey').change(repopulateDatesAndSourceStopsFromAgency);
+$('#agencyKey').on("change", repopulateDatesAndSourceStopsFromAgency);
 
 function repopulateTripsFromDateAndSourceStop() {
   const agencyKey = $("#agencyKey").val();
@@ -175,4 +181,9 @@ if (datePicker) {
     });
 }
 clearEverythingAfterAgency();
-console.log("We definitely ran the client.js once.");
+console.log("agency is now", $("#agencyKey").val());
+if ($("#agencyKey").val() != "") {
+  repopulateDatesAndSourceStopsFromAgency();
+}
+
+console.log("We definitely ran the client.js once and we're using recent client-side code.");

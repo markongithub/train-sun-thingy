@@ -1,5 +1,5 @@
 // "use strict";
-const GeoJSON = require('geojson');
+// import * as GeoJSON from 'geojson';
 import * as geojsonExtent from '@mapbox/geojson-extent';
 import * as gtfs from 'gtfs';
 import moment from 'moment-timezone';
@@ -347,8 +347,8 @@ function sunDetailsAlongRoute(stopID1, stopID2, routeStoptimes,
       stoptimes[i - 1], stoptimes[i], allStops, allShapes, dateObj, timeZone);
     result = result.concat(curDetails);
   }
-  return GeoJSON.parse(result, { 'LineString': 'line' });
-  // return result;
+  // return GeoJSON.parse(result, { 'LineString': 'line' });
+  return result;
 }
 
 // if I have a tripID

@@ -33,10 +33,8 @@ fs.readdir(config.sqliteStoragePath, function (err, files) {
 });
 
 // Delete this log when Glitch is stable
-console.log("Static files are stored in ", publicPath);
+console.log("Static files are stored in", publicPath);
 app.use(express.static(publicPath))
-app.use('/pikaday',
-  express.static('node_modules/pikaday'))
 
 app.use(logger('combined'))
 
