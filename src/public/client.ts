@@ -1,4 +1,12 @@
 
+
+enum sunStatus {
+  LEFT,
+  RIGHT,
+  CENTER,
+  DARK,
+}
+
 function emptySelect(element) {
   element.empty();
   element.append(new Option());
@@ -125,8 +133,8 @@ function populateMap(mapDate) {
     console.log("Response from server: " + geojson);
     map.data.forEach(f => map.data.remove(f));
     mapSideEffect = map.data.addGeoJson(geojson);
-    var sw = new google.maps.LatLng(geojson.bbox[1], geojson.bbox[0]);
-    var ne = new google.maps.LatLng(geojson.bbox[3], geojson.bbox[2]);
+    var sw = { lat: geojson.bbox[1], lng: geojson.bbox[0] };
+    var ne = { lat: geojson.bbox[3], lng: geojson.bbox[2] };
     map.fitBounds(new google.maps.LatLngBounds(sw, ne));
     colorCode();
     $("#map_doc")[0].style.visibility = "visible"; 
@@ -136,27 +144,35 @@ function populateMap(mapDate) {
 
 var mapOptions = {
   zoom: 5,
-  center: new google.maps.LatLng(40.502651, -74.449498) // yeah
+  center: {lat: 40.502651, lng: -74.449498},
 };
 var mapSideEffect;
 
-var map = new google.maps.Map(
-  document.getElementById('map_canvas'), mapOptions);
-
+var map = new google.maps.Map(document.getElementById("map_canvas") as HTMLElement, mapOptions);
 function colorCode() {
   map.data.setStyle(function(feature) {
-    if (feature.getProperty("sunStatus") != undefined) {
-      var sunStatus = feature.getProperty("sunStatus");
+    let dumbStatus: unknown = feature.getProperty("sunStatus");
+    if (dumbStatus != undefined && typeof dumbStatus == "number") {
+      var thisSunStatus: number = dumbStatus;
       var colors = ['aqua', 'red', 'white', 'black'];
       return {
-        strokeColor: colors[sunStatus]
+        strokeColor: colors[thisSunStatus]
       };
     }
   });
 }
 
-var picker= new Pikaday({field: document.getElementById('mapDate'),
-                         onSelect: function(date) {
-                           populateMap(picker.toString()); }});
+var datePicker= document.getElementById('mapDate');
+if (datePicker) {
+    datePicker.addEventListener('change', (event) => {
+        // Force TypeScript to recognize the target as an input element
+        const element = event.currentTarget as HTMLInputElement;
+        if (element) {
+            const rawDateString = element.value;
+            console.log(rawDateString);
+            populateMap(rawDateString);
+        }
+    });
+}
 clearEverythingAfterAgency();
 console.log("We definitely ran the client.js once.");

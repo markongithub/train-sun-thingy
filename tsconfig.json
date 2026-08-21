@@ -9,7 +9,7 @@
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
     "target": "esnext",
-    "types": ["jquery"],
+    "types": ["jquery", "google.maps"],
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],

@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/markongithub/train-sun-thingy#readme",
   "devDependencies": {
+    "@types/google.maps": "^3.65.5",
     "@types/jquery": "^4.0.1",
     "@types/node": "^26.2.0",
     "mocha": "^11.8.0",

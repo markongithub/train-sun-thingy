@@ -177,11 +177,11 @@ function durationsForShapeList(stopT1, stopT2, shapes, dateObj, timeZone) {
   return segmentDurations;
 }
 
-var sunStatus = {
-  LEFT: 0,
-  RIGHT: 1,
-  CENTER: 2,
-  DARK: 3
+enum sunStatus {
+  LEFT,
+  RIGHT,
+  CENTER,
+  DARK,
 }
 
 function sunnySideVerdict(statuses) {
