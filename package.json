@@ -24,14 +24,18 @@
   "devDependencies": {
     "@types/google.maps": "^3.65.5",
     "@types/jquery": "^4.0.1",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^26.2.0",
     "mocha": "^11.8.0",
     "typescript": "^7.0.2"
   },
   "dependencies": {
     "@mapbox/geojson-extent": "^1.0.1",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "gtfs": "^4.20.2",
     "moment-timezone": "^0.6.3",
+    "morgan": "^1.11.0",
     "suncalc": "^2.0.1"
   }
 }

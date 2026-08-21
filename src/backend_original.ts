@@ -6,7 +6,9 @@ import moment from 'moment-timezone';
 import { getPosition } from 'suncalc';
 
 
-export { getDates8601, getSourceStops, getDeparturesForStopAndDateAjax, getSubsequentStops, getYearVerdictAjax, getGeoJSONAjax, dataFreshness };
+export { getDates8601, getSourceStops, getDeparturesForStopAndDateAjax, getSubsequentStops, getYearVerdictAjax, getGeoJSONAjax, dataFreshness,
+  // the following are only exported for tests, consider using rewire instead
+  shapesForStoptimePair, transitTimeToRealDate, atan2ToSuncalc, sunStatus, relativeToHeading, durationsForShapeList, sunStatusForSegment, sunTimesForStoptimePair, sunStatusAlongRoute};
 
 process.on('unhandledRejection', function onError(err) {
   throw err;

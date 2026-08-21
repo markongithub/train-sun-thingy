@@ -1,3 +1,4 @@
 .env
 tsDist
 scripts/gtfs-downloads
+node_modules
