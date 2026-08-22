@@ -10,4 +10,4 @@ COPY . .
 RUN tsc
 
 EXPOSE 8080
-CMD ["node", "tsDist/routes.js"]
+CMD ["node", "src/routes.js"]
