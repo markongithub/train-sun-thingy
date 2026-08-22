@@ -124,6 +124,7 @@ function populateVerdict() {
     $("#verdict").html(verdict);
   });
   (<HTMLInputElement>$("#mapDate")[0]).value = tripDate;
+  console.log("I think I just set the date picker's value to", tripDate);
   populateMap(tripDate);
 }
 
@@ -164,7 +165,7 @@ var mapSideEffect;
 var map = new google.maps.Map(document.getElementById("map_canvas") as HTMLElement, mapOptions);
 function colorCode() {
   map.data.setStyle(function(feature) {
-    console.log("Trying to setStyle on the feature", feature);
+    // console.log("Trying to setStyle on the feature", feature);
     let dumbStatus: unknown = feature.getProperty("sunStatus");
     if (dumbStatus != undefined && typeof dumbStatus == "number") {
       var thisSunStatus: number = dumbStatus;

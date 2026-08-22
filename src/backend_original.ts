@@ -519,7 +519,7 @@ function nearbyDatesWithService(db, horizon) {
 function getDates8601(db) {
   const dates = nearbyDatesWithService(db, 8);
   return dates.map(
-    d => (d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate()));
+    d => (d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0')));
 }
 
 function getStoptimesForStopAndDate(db, stopID, dateObj) {
