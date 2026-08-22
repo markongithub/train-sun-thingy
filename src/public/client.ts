@@ -42,12 +42,15 @@ function agencyChangeHandler() {
     console.log("... so I am not going to do anything.");
     return;
   }
+  console.log("Going to call repopulateDatesAndSourceStopsFromAgency...");
   repopulateDatesAndSourceStopsFromAgency(newKey);
 }
 function repopulateDatesAndSourceStopsFromAgency(newKey) {
+  console.log("Entered repopulateDatesAndSourceStopsFromAgency with newKey", newKey);
   const dates = $("#date");
   const sourceStops = $("#sourceStop");
   clearEverythingAfterAgency();
+  console.log("About to try calling getJSON for /dates...");
   $.getJSON("/dates", {agencyKey: newKey}, function(data) {
     for (var i=0; i < data.length; i++) {
       // console.log("Appending " + data[i].stop_name);
@@ -55,7 +58,10 @@ function repopulateDatesAndSourceStopsFromAgency(newKey) {
       if (i==1) newOpt.selected = true;
       dates.append(newOpt);
     }
+  }).fail(function(jqXHR, textStatus, errorThrown) {
+    console.log("Request completed, but engine caught an error:", textStatus);
   });
+  console.log("About to try calling getJSON for /stops...");
   $.getJSON("/stops", {agencyKey: newKey}, function(data) {
     console.log("Starting to deal with " + data.length + " stops.");
     for (var i=0; i < data.length; i++) {
@@ -66,7 +72,7 @@ function repopulateDatesAndSourceStopsFromAgency(newKey) {
   });
   console.log("I think I have finished repopulateDatesAndSourceStopsFromAgency");
 }
-$('#agencyKey').on("change", repopulateDatesAndSourceStopsFromAgency);
+$('#agencyKey').on("change", agencyChangeHandler);
 
 function repopulateTripsFromDateAndSourceStop() {
   const agencyKey = $("#agencyKey").val();
