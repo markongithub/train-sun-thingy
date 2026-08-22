@@ -35,13 +35,16 @@ function clearEverythingAfterDestinationStop() {
   $("#mapDate")[0].style.visibility = "hidden";
 }
 
-function repopulateDatesAndSourceStopsFromAgency() {
+function agencyChangeHandler() {
   const newKey = $(this).val();
   console.log("the agency key is now " + newKey);
   if (!newKey) {
     console.log("... so I am not going to do anything.");
     return;
   }
+  repopulateDatesAndSourceStopsFromAgency(newKey);
+}
+function repopulateDatesAndSourceStopsFromAgency(newKey) {
   const dates = $("#date");
   const sourceStops = $("#sourceStop");
   clearEverythingAfterAgency();
@@ -188,7 +191,7 @@ if (datePicker) {
 clearEverythingAfterAgency();
 console.log("agency is now", $("#agencyKey").val());
 if ($("#agencyKey").val() != "") {
-  repopulateDatesAndSourceStopsFromAgency();
+  repopulateDatesAndSourceStopsFromAgency($("#agencyKey").val());
 }
 
 console.log("We definitely ran the client.js once and we're using recent client-side code.");
