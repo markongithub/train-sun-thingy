@@ -136,12 +136,16 @@ function populateMap(mapDate) {
             {agencyKey: agencyKey, trip: trip, sourceStop: sourceStop,
              destStop: destStop, date: mapDate},
             function(geojson) {
-    console.log("Response from server: " + geojson);
+    console.log("Response from server: " + JSON.stringify(geojson));
+    console.log("Finished /geojson request. Attempting remove step...");
     map.data.forEach(f => map.data.remove(f));
+    console.log("Got past remove step.");
     mapSideEffect = map.data.addGeoJson(geojson);
+    console.log("Got past addGeoJson step.");
     var sw = { lat: geojson.bbox[1], lng: geojson.bbox[0] };
     var ne = { lat: geojson.bbox[3], lng: geojson.bbox[2] };
     map.fitBounds(new google.maps.LatLngBounds(sw, ne));
+    console.log("Got past fitBounds before crashing.");
     colorCode();
     $("#map_doc")[0].style.visibility = "visible"; 
     $("#mapDate")[0].style.visibility = "visible"; 
@@ -157,6 +161,7 @@ var mapSideEffect;
 var map = new google.maps.Map(document.getElementById("map_canvas") as HTMLElement, mapOptions);
 function colorCode() {
   map.data.setStyle(function(feature) {
+    console.log("Trying to setStyle on the feature", feature);
     let dumbStatus: unknown = feature.getProperty("sunStatus");
     if (dumbStatus != undefined && typeof dumbStatus == "number") {
       var thisSunStatus: number = dumbStatus;

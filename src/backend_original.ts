@@ -4,7 +4,7 @@ import * as geojsonExtent from '@mapbox/geojson-extent';
 import * as gtfs from 'gtfs';
 import moment from 'moment-timezone';
 import { getPosition } from 'suncalc';
-
+import GeoJSON from 'geojson';
 
 export { getDates8601, getSourceStops, getDeparturesForStopAndDateAjax, getSubsequentStops, getYearVerdictAjax, getGeoJSONAjax, dataFreshness,
   // the following are only exported for tests, consider using rewire instead
@@ -345,10 +345,11 @@ function sunDetailsAlongRoute(stopID1, stopID2, routeStoptimes,
   for (var i = 1; i < stoptimes.length; i++) {
     var curDetails = sunDetailsForStoptimePair(
       stoptimes[i - 1], stoptimes[i], allStops, allShapes, dateObj, timeZone);
+      console.log("curDetails returned", JSON.stringify(curDetails));
     result = result.concat(curDetails);
   }
-  // return GeoJSON.parse(result, { 'LineString': 'line' });
-  return result;
+  return GeoJSON.parse(result, {'LineString': 'line'});
+  // return result;
 }
 
 // if I have a tripID
@@ -418,7 +419,9 @@ function getDetailsForTrip(db, tripID, startDate, fromStop, toStop) {
   const geojsonNamingCollision = sunDetailsAlongRoute(
     fromStop, toStop, tripData.stoptimes, tripData.stops,
     tripData.shapes, startDate, tripData.timeZone);
-  return geojsonExtent.bboxify(geojsonNamingCollision);
+  const output = geojsonExtent.bboxify(geojsonNamingCollision);
+  console.log("Here's what we'll return to the client: " + JSON.stringify(output));
+  return output;
 }
 
 function formatMultiDayResults(results) {
