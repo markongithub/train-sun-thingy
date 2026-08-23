@@ -64,12 +64,15 @@ function repopulateDatesAndSourceStopsFromAgency(newKey) {
   console.log("About to try calling getJSON for /stops...");
   $.getJSON("/stops", {agencyKey: newKey}, function(data) {
     console.log("Starting to deal with " + data.length + " stops.");
+    $("#sourceStopProgress").html("Populating " +data.length + " source stops. This could takes a while...");
     for (var i=0; i < data.length; i++) {
       // console.log("Appending " + data[i].stop_name);
       var newOpt = new Option(data[i].stop_name, data[i].stop_id);
       sourceStops.append(newOpt);
     }
+    $("#sourceStopProgress").html("Successfully loaded all " +data.length + " source stops.");
   });
+  $("#sourceStopProgress").html("Populating source stops. Sometimes this takes a while for big sprawling bus maps...");
   console.log("I think I have finished repopulateDatesAndSourceStopsFromAgency");
 }
 $('#agencyKey').on("change", agencyChangeHandler);
