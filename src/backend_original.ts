@@ -121,6 +121,14 @@ function vehicleHeading(shape1, shape2) {
   return atan2ToSuncalc(Math.atan2(dy, dx));
 }
 
+function newSuncalcToOld(degrees) {
+  // suncalc 2.x returns azimuths as degrees from north:
+  // degrees, clockwise from north (0 = N, 90 = E, 180 = S, 270 = W)
+  // that will never be negative}
+  // old suncalc was radians going clockwise from south. 0 was S, 
+  return ((degrees + 180) % 360) * (Math.PI / 180);
+}
+
 function atan2ToSuncalc(radians) {
   // Okay. suncalc returns azimuths as radians west of south. Math.atan2 counts
   // radians north of east. Both can go negative. All my math is wrong.
@@ -155,10 +163,13 @@ function transitTimeToRealDate(dateObj, timeStr, timeZone) {
   var momentArray = [
     dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), hourMinSec[0],
     hourMinSec[1], hourMinSec[2]];
-  // console.log(momentArray);
+  // console.log("momentArray: " + momentArray);
   const first = moment.tz(momentArray, timeZone);
+  // console.log("First moment.tz is " + first + " and we are going to add " + dayOffset);
   const second = first.add(dayOffset, "days");
-  return second.toDate();
+  const output = second.toDate();
+  // console.log("We are going to return " + second + ".toDate() which is " + output);
+  return output;
 }
 
 function addWhyDoIHaveToWriteThis(x, y) {
@@ -210,9 +221,9 @@ function sunStatusForSegment(startDate, endDate, startShape, endShape) {
   // console.log("heading " + heading);
   var sunData = getPosition(sunTime, sunLocation[0], sunLocation[1]);
   // console.log(sunLocation + " " + sunTime);
-  // console.log(sunData);
+  // console.log(`sunCalc returned ${JSON.stringify(sunData)}`);
   if (sunData.altitude < 0) return sunStatus.DARK;
-  return relativeToHeading(heading, sunData.azimuth);
+  return relativeToHeading(heading, newSuncalcToOld(sunData.azimuth));
 }
 
 // https://stackoverflow.com/questions/4467539/javascript-modulo-gives-a-negative-result-for-negative-numbers
@@ -237,7 +248,8 @@ function relativeToHeading(heading, azimuth) {
 function sunTimesForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
   dateObj, timeZone) {
   // console.log("In sunTimesForStoptimePair, allShapes is of type " + typeof(allShapes));
-  var statusTime = new Array(Object.keys(sunStatus).length).fill(0);
+  var statusTime = new Array(4).fill(0);
+  // console.log(`When we start out, statusTime is ${statusTime}`)
   var shapes = shapesForStoptimePair(stoptime1, stoptime2, allStops, allShapes);
   console.assert(shapes.length > 1, "Insufficient shapesForStoptimePair");
   var durations = durationsForShapeList(stoptime1, stoptime2, shapes,
@@ -250,8 +262,8 @@ function sunTimesForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
     var endTime = new Date(startTime.getTime() + durations[i]);
     var segmentResult = sunStatusForSegment(startTime, endTime,
       shapes[i], shapes[i + 1]);
-    // console.log(durations[i] + " ms with sunStatus " + segmentResult);
-
+      // console.log(durations[i] + " ms with sunStatus " + segmentResult );
+      // console.log(`From ${startTime} to ${endTime} we travel from ${JSON.stringify(shapes[i])} to ${JSON.stringify(shapes[i+1])} with sunStatus ${segmentResult}`);
     statusTime[segmentResult] += Math.round(durations[i]); // nearest ms?
     startTime = endTime;
   }
@@ -324,7 +336,7 @@ function addArrays(a1, a2) {
 function sunStatusAlongRoute(stopID1, stopID2, routeStoptimes,
   allStops, allShapes, dateObj, timeZone) {
   var curStatus: number[] = new Array(
-    Object.keys(sunStatus).length).fill(0);
+    Object.keys(sunStatus).length / 2).fill(0);
   var stoptimes = stoptimesAlongRoute(stopID1, stopID2, routeStoptimes,
     allStops);
   if (stoptimes.length < 2) throw "found less than 2 stoptimes on route.";

@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --require tsx test/*.ts"
   },
   "repository": {
     "type": "git",
@@ -27,6 +27,8 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "^26.2.0",
     "mocha": "^11.8.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.23.12",
     "typescript": "^7.0.2"
   },
   "dependencies": {

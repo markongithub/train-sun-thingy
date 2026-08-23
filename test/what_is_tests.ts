@@ -34,13 +34,13 @@ describe('main module', function() {
 
   describe('transitTimeToRealDate', function() {
     it('does what I want it to do', function() {
-      var expected = new Date(2017, 10, 5, 16, 55, 0); // expressed in UTC
+      var expected = new Date(Date.UTC(2017, 10, 5, 16, 55, 0)); // expressed in UTC
       var actual = MyCode.transitTimeToRealDate(
         defaultDate, "11:55:00", defaultTimeZone);
       assert.equal(expected.getTime(), actual.getTime());
     });
     it('handles dates after midnight', function() {
-      var expected = new Date(2017, 10, 6, 5, 55, 0); // expressed in UTC
+      var expected = new Date(Date.UTC(2017, 10, 6, 5, 55, 0)); // expressed in UTC
       var actual = MyCode.transitTimeToRealDate(
         defaultDate, "24:55:00", defaultTimeZone); // 0055 = 5:55 UTC
       assert.equal(expected.getTime(), actual.getTime());
@@ -117,7 +117,7 @@ describe('main module', function() {
     });
   });
 
-  describe('sunStatusForStoptimePair', function() {
+  describe('sunTimesForStoptimePair', function() {
     it('makes a simpler test than the last one', function() {
       var result = MyCode.sunTimesForStoptimePair(
         testStoptimesSEPTA[13], testStoptimesSEPTA[14],
