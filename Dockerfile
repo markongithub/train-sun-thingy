@@ -9,5 +9,5 @@ COPY . .
 
 RUN tsc
 
-EXPOSE 8080
-CMD ["node", "src/routes.js"]
+EXPOSE ${PORT}
+CMD ["node", "dist/src/routes.js"]

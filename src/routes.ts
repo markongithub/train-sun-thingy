@@ -75,6 +75,12 @@ app.get('/verdict', function (req, res) {
     req.query.destStop))
 })
 
+app.get('/debug_verdict', function (req, res) {
+  res.send(MyCode.debugVerdict(
+    dbMap.get(req.query.agencyKey), req.query.trip, req.query.date, req.query.sourceStop,
+    req.query.destStop))
+})
+
 app.get('/geojson', function (req, res) {
   res.send(MyCode.getGeoJSONAjax(
     dbMap.get(req.query.agencyKey), req.query.trip, req.query.date, req.query.sourceStop,
@@ -96,5 +102,5 @@ if (config.ssl) {
   }).listen(80, 443);
 }
 else {
-  app.listen(8080, () => console.log('Example app listening on port 8080!'));
+  app.listen(process.env.PORT, () => console.log(`Example app listening on port ${process.env.PORT}!`));
 }

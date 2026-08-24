@@ -2,3 +2,5 @@
 tsDist
 scripts/gtfs-downloads
 node_modules
+.vercel
+.env*

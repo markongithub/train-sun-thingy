@@ -6,7 +6,7 @@ import moment from 'moment-timezone';
 import { getPosition } from 'suncalc';
 import GeoJSON from 'geojson';
 
-export { getDates8601, getSourceStops, getDeparturesForStopAndDateAjax, getSubsequentStops, getYearVerdictAjax, getGeoJSONAjax, dataFreshness,
+export { getDates8601, getSourceStops, getDeparturesForStopAndDateAjax, getSubsequentStops, getYearVerdictAjax, getGeoJSONAjax, dataFreshness, debugVerdict,
   // the following are only exported for tests, consider using rewire instead
   shapesForStoptimePair, transitTimeToRealDate, atan2ToSuncalc, sunStatus, relativeToHeading, durationsForShapeList, sunStatusForSegment, sunTimesForStoptimePair, sunStatusAlongRoute};
 
@@ -357,7 +357,7 @@ function sunDetailsAlongRoute(stopID1, stopID2, routeStoptimes,
   for (var i = 1; i < stoptimes.length; i++) {
     var curDetails = sunDetailsForStoptimePair(
       stoptimes[i - 1], stoptimes[i], allStops, allShapes, dateObj, timeZone);
-      console.log("curDetails returned", JSON.stringify(curDetails));
+      // console.log("curDetails returned", JSON.stringify(curDetails));
     result = result.concat(curDetails);
   }
   return GeoJSON.parse(result, {'LineString': 'line'});
@@ -413,11 +413,11 @@ function getYearOfTrips(db, tripID, startDate, fromStop, toStop) {
   const tripData = getAllTripData(db, tripID);
   var dates = dateRange(startDate, 365); // Sucks if it's a leap year.
   var result = new Array(365);
-  console.log("In getYearOfTrips, tripData.shapes is of type " + typeof(tripData.shapes) + " and tripData.shapes[0] is of type " + typeof(tripData.shapes[0]));
+  console.log("In getYearOfTrips, tripData.shapes is of type " + typeof(tripData.shapes) + " and tripData.shapes[0] is of type " + typeof(tripData.shapes[0]) + " and dates is of length " + dates.length);
   for (var i = 0; i < dates.length; i++) {
     result[i] = {
       date: dates[i],
-      sunStatus: sunStatusAlongRoute(
+      thisSunStatus: sunStatusAlongRoute(
         fromStop, toStop, tripData.stoptimes, tripData.stops,
         tripData.shapes, dates[i], tripData.timeZone)
     };
@@ -432,7 +432,7 @@ function getDetailsForTrip(db, tripID, startDate, fromStop, toStop) {
     fromStop, toStop, tripData.stoptimes, tripData.stops,
     tripData.shapes, startDate, tripData.timeZone);
   const output = geojsonExtent.bboxify(geojsonNamingCollision);
-  console.log("Here's what we'll return to the client: " + JSON.stringify(output));
+  // console.log("Here's what we'll return to the client: " + JSON.stringify(output));
   return output;
 }
 
@@ -476,6 +476,16 @@ function getGeoJSONAjax(
   db, tripID, startDate8601, fromStop, toStop) {
   const startDate = new Date(startDate8601);
   return getDetailsForTrip(db, tripID, startDate, fromStop, toStop);
+}
+
+function debugVerdict(
+  db, tripID, startDate8601, fromStop, toStop) {
+  const startDate = Temporal.PlainDate.from(startDate8601);
+  console.log(`This trip is happening on ${startDate}`);
+  const tripData = getAllTripData(db, tripID);
+  return sunStatusAlongRoute(
+        fromStop, toStop, tripData.stoptimes, tripData.stops,
+        tripData.shapes, startDate, tripData.timeZone)
 }
 
 function getServicesForDate(db, dateObj): string[] {
