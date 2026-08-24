@@ -7,7 +7,8 @@ var testShapesSEPTA = require('./septa_test_shapes.json');
 var testStopsSEPTA = require('./septa_test_stops.json');
 var testStoptimesSEPTA = require('./septa_test_stoptimes.json');
 
-var defaultDate = new Date(2017, 10, 5);
+const { Temporal } = require('@js-temporal/polyfill');
+var defaultDate = Temporal.PlainDate.from("2017-11-05");
 var defaultTimeZone = "US/Eastern";
 
 describe('main module', function() {
@@ -37,13 +38,13 @@ describe('main module', function() {
       var expected = new Date(Date.UTC(2017, 10, 5, 16, 55, 0)); // expressed in UTC
       var actual = MyCode.transitTimeToRealDate(
         defaultDate, "11:55:00", defaultTimeZone);
-      assert.equal(expected.getTime(), actual.getTime());
+      assert.equal(expected.toString(), actual.toString());
     });
     it('handles dates after midnight', function() {
       var expected = new Date(Date.UTC(2017, 10, 6, 5, 55, 0)); // expressed in UTC
       var actual = MyCode.transitTimeToRealDate(
         defaultDate, "24:55:00", defaultTimeZone); // 0055 = 5:55 UTC
-      assert.equal(expected.getTime(), actual.getTime());
+      assert.equal(expected.toString(), actual.toString());
     });
   });
 

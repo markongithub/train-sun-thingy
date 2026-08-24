@@ -34,6 +34,7 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@js-temporal/polyfill": "^0.5.1",
     "@mapbox/geojson-extent": "^1.0.1",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",

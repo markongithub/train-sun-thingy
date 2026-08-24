@@ -10,6 +10,8 @@ export { getDates8601, getSourceStops, getDeparturesForStopAndDateAjax, getSubse
   // the following are only exported for tests, consider using rewire instead
   shapesForStoptimePair, transitTimeToRealDate, atan2ToSuncalc, sunStatus, relativeToHeading, durationsForShapeList, sunStatusForSegment, sunTimesForStoptimePair, sunStatusAlongRoute};
 
+import { Temporal } from '@js-temporal/polyfill';
+
 process.on('unhandledRejection', function onError(err) {
   throw err;
 });
@@ -155,13 +157,13 @@ function segmentMidpoint(shape1, shape2) {
   (shape1.shape_pt_lon + shape2.shape_pt_lon) / 2.0]
 }
 
-function transitTimeToRealDate(dateObj, timeStr, timeZone) {
+function transitTimeToRealDate(plainDate, timeStr, timeZone) {
   if (timeZone === undefined) throw new Error("You must specify a time zone.");
   var hourMinSec = timeStr.split(':'); // Also assuming this works!
   var dayOffset = Math.floor(hourMinSec[0] / 24);
   hourMinSec[0] = hourMinSec[0] % 24;
   var momentArray = [
-    dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), hourMinSec[0],
+    plainDate.year, plainDate.month - 1, plainDate.day, hourMinSec[0],
     hourMinSec[1], hourMinSec[2]];
   // console.log("momentArray: " + momentArray);
   const first = moment.tz(momentArray, timeZone);
@@ -176,15 +178,15 @@ function addWhyDoIHaveToWriteThis(x, y) {
   return x + y;
 }
 
-function durationsForShapeList(stopT1, stopT2, shapes, dateObj, timeZone) {
+function durationsForShapeList(stopT1, stopT2, shapes, dateObj: Temporal.PlainDate, timeZone) {
   var segmentDistances = new Array(shapes.length - 1);
   for (var i = 0; i < (shapes.length - 1); i++) {
     segmentDistances[i] = segmentDistance(shapes[i], shapes[i + 1]);
   }
   var totalDistance = segmentDistances.reduce(addWhyDoIHaveToWriteThis);
   var segmentFractions = segmentDistances.map(d => d / totalDistance);
-  var dateA = transitTimeToRealDate(dateObj, stopT1.departure_time, timeZone);
-  var dateB = transitTimeToRealDate(dateObj, stopT2.departure_time, timeZone);
+  var dateA: Date = transitTimeToRealDate(dateObj, stopT1.departure_time, timeZone);
+  var dateB: Date = transitTimeToRealDate(dateObj, stopT2.departure_time, timeZone);
   var duration = dateB.getTime() - dateA.getTime();
   var segmentDurations = segmentFractions.map(f => f * duration);
   return segmentDurations;
@@ -198,6 +200,7 @@ enum sunStatus {
 }
 
 function sunnySideVerdict(statuses) {
+  console.log(`statuses: ${statuses}`);
   if (statuses[sunStatus.LEFT] == statuses[sunStatus.RIGHT]) {
     if (statuses[sunStatus.LEFT] || statuses[sunStatus.CENTER]) {
       return ("both sides of the vehicle get equal sunlight during this trip " +
@@ -246,8 +249,8 @@ function relativeToHeading(heading, azimuth) {
 
 
 function sunTimesForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
-  dateObj, timeZone) {
-  // console.log("In sunTimesForStoptimePair, allShapes is of type " + typeof(allShapes));
+  dateObj: Temporal.PlainDate, timeZone) {
+  console.log("In sunTimesForStoptimePair, allShapes is of type " + typeof(allShapes) + " and dateObj is " + dateObj.toString());
   var statusTime = new Array(4).fill(0);
   // console.log(`When we start out, statusTime is ${statusTime}`)
   var shapes = shapesForStoptimePair(stoptime1, stoptime2, allStops, allShapes);
@@ -264,14 +267,14 @@ function sunTimesForStoptimePair(stoptime1, stoptime2, allStops, allShapes,
       shapes[i], shapes[i + 1]);
       // console.log(durations[i] + " ms with sunStatus " + segmentResult );
       // console.log(`From ${startTime} to ${endTime} we travel from ${JSON.stringify(shapes[i])} to ${JSON.stringify(shapes[i+1])} with sunStatus ${segmentResult}`);
-    statusTime[segmentResult] += Math.round(durations[i]); // nearest ms?
+      statusTime[segmentResult] += Math.round(durations[i]); // nearest ms?
     startTime = endTime;
   }
   return statusTime;
 }
 
 function sunDetailsForStoptimePair(stoptime1, stoptime2, allStops, allShapes: any[],
-  dateObj, timeZone) {
+  dateObj: Temporal.PlainDate, timeZone) {
   var shapes = shapesForStoptimePair(stoptime1, stoptime2, allStops, allShapes);
   console.assert(shapes.length > 1, "Insufficient shapesForStoptimePair");
   var durations = durationsForShapeList(stoptime1, stoptime2, shapes,
@@ -343,6 +346,7 @@ function sunStatusAlongRoute(stopID1, stopID2, routeStoptimes,
   for (var i = 1; i < stoptimes.length; i++) {
     var nextStatus = sunTimesForStoptimePair(
       stoptimes[i - 1], stoptimes[i], allStops, allShapes, dateObj, timeZone);
+    // console.log(`curStatus ${curStatus} nextStatus ${nextStatus}`)
     curStatus = addArrays(curStatus, nextStatus);
   }
   return curStatus;
@@ -399,12 +403,10 @@ function getAllTripData(db, tripID) {
   return output;
 }
 
-function dateRange(startDate, days) {
-  var result = new Array(days);
-  var nextDate = startDate;
+function dateRange(startDate, days): Temporal.PlainDate[] {
+  var result: Temporal.PlainDate[] = new Array(days);
   for (var i = 0; i < days; i++) {
-    result[i] = new Date(nextDate);
-    nextDate.setDate(nextDate.getDate() + 1);
+    result[i] = startDate.add({days: i});
   }
   return result;
 }
@@ -421,7 +423,9 @@ function getYearOfTrips(db, tripID, startDate, fromStop, toStop) {
         fromStop, toStop, tripData.stoptimes, tripData.stops,
         tripData.shapes, dates[i], tripData.timeZone)
     };
+    console.log(`result[${i}] was ${JSON.stringify(result[i])}`);
   }
+  console.log(`This should be an array of size 365 or so: ${result.length}`);
   return result;
 }
 
@@ -436,19 +440,24 @@ function getDetailsForTrip(db, tripID, startDate, fromStop, toStop) {
   return output;
 }
 
+function formatDate(date: string): string {
+  return date.toString()
+}
+
 function formatMultiDayResults(results) {
-  var curVerdict = sunnySideVerdict(results[0].sunStatus);
-  var segmentStarted = results[0].date.toDateString();
+  console.log(`results[0]: ${JSON.stringify(results[0])}`);
+  var curVerdict = sunnySideVerdict(results[0].thisSunStatus);
+  var segmentStarted = formatDate(results[0].date);
   var output = "";
   for (var i = 1; i < results.length; i++) {
-    var newVerdict = sunnySideVerdict(results[i].sunStatus);
+    var newVerdict = sunnySideVerdict(results[i].thisSunStatus);
     if ((i == (results.length - 1)) || (newVerdict != curVerdict)) {
       var segmentEnded;
       if (i == (results.length - 1)) {
-        segmentEnded = results[i].date.toDateString();
+        segmentEnded = formatDate(results[i].date);
       }
       else {
-        segmentEnded = results[i - 1].date.toDateString();
+        segmentEnded = formatDate(results[i - 1].date);
       }
       var curDates;
       if (i == (results.length - 1) && output == "") {
@@ -460,7 +469,7 @@ function formatMultiDayResults(results) {
       var newOutput = (curDates + ", " + curVerdict + "<BR>");
       output += newOutput;
       curVerdict = newVerdict;
-      segmentStarted = results[i].date.toDateString();
+      segmentStarted = formatDate(results[i].date);
     }
   }
   return output;
@@ -468,33 +477,30 @@ function formatMultiDayResults(results) {
 
 function getYearVerdictAjax(
   db, tripID, startDate8601, fromStop, toStop) {
-  const startDate = new Date(startDate8601);
+  const startDate = Temporal.PlainDate.from(startDate8601);
   return formatMultiDayResults(getYearOfTrips(db, tripID, startDate, fromStop, toStop));
 }
 
 function getGeoJSONAjax(
   db, tripID, startDate8601, fromStop, toStop) {
-  const startDate = new Date(startDate8601);
+  const startDate = Temporal.PlainDate.from(startDate8601);
   return getDetailsForTrip(db, tripID, startDate, fromStop, toStop);
 }
 
 function debugVerdict(
   db, tripID, startDate8601, fromStop, toStop) {
   const startDate = Temporal.PlainDate.from(startDate8601);
-  console.log(`This trip is happening on ${startDate}`);
+  // console.log(`This trip is happening on ${startDate}`);
   const tripData = getAllTripData(db, tripID);
   return sunStatusAlongRoute(
         fromStop, toStop, tripData.stoptimes, tripData.stops,
         tripData.shapes, startDate, tripData.timeZone)
 }
 
-function getServicesForDate(db, dateObj): string[] {
-  // Seriously, this is what mozilla.org says we should do.
-  const dateYYYYMMDD = (dateObj.getFullYear() * 10000 +
-    (dateObj.getMonth() + 1) * 100 +
-    dateObj.getDate()).toString();
+function getServicesForDate(db, dateObj: Temporal.PlainDate): string[] {
+  const dateYYYYMMDD = plainDateToYYYYMMDD(dateObj);
   const dayOfWeekLC = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday',
-    'friday', 'saturday'][dateObj.getDay()]
+    'friday', 'saturday'][dateObj.dayOfWeek - 1];
   console.log("dateYYYYMMDD: " + dateYYYYMMDD + ", dayOfWeekLC: " + dayOfWeekLC);
   const servicesNormal = db
     .prepare(
@@ -522,26 +528,29 @@ function getServicesForDate(db, dateObj): string[] {
   return Array.from(services);
 }
 
-function hasServiceOnDate(db, dateObj) {
+function hasServiceOnDate(db, dateObj: Temporal.PlainDate) {
   return (getServicesForDate(db, dateObj).length) > 0;
 }
 
-function nearbyDatesWithService(db, horizon) {
-  var startDate = new Date(Date.now());
-  startDate.setDate(startDate.getDate() - 1); // start from yesterday
+function nearbyDatesWithService(db, horizon): Temporal.PlainDate[] {
+  // start from yesterday
+  var startDate = Temporal.Now.plainDateISO().subtract({days: 1});
   const possibleDates = dateRange(startDate, horizon);
   const bools = possibleDates.map(d => hasServiceOnDate(db, d));
-  var output = [];
+  var output: Temporal.PlainDate[] = [];
   for (var i = 0; i < possibleDates.length; i++) {
     if (bools[i]) { output.push(possibleDates[i]); }
   }
   return output;
 }
 
-function getDates8601(db) {
+function plainDateToYYYYMMDD(plainDate: Temporal.PlainDate): string {
+  return `${plainDate.year}${String(plainDate.month).padStart(2, '0')}${String(plainDate.day).padStart(2, '0')}`
+}
+
+function getDates8601(db): string[] {
   const dates = nearbyDatesWithService(db, 8);
-  return dates.map(
-    d => (d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0')));
+  return dates.map(d => d.toString());
 }
 
 function getStoptimesForStopAndDate(db, stopID, dateObj) {
@@ -634,7 +643,7 @@ function sortByDepartureDesc(departures) {
   });
 }
 function getDeparturesForStopAndDateAjax(db, stopID, date8601) {
-  const dateObj = new Date(date8601);
+  const dateObj = Temporal.PlainDate.from(date8601);
   const departures = getDeparturesForStopAndDate(db, stopID, dateObj);
   return sortByDepartureDesc(departures.map(formatAjaxDeparture));
 }
