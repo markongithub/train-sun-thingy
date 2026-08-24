@@ -10,7 +10,11 @@ export { getDates8601, getSourceStops, getDeparturesForStopAndDateAjax, getSubse
   // the following are only exported for tests, consider using rewire instead
   shapesForStoptimePair, transitTimeToRealDate, atan2ToSuncalc, sunStatus, relativeToHeading, durationsForShapeList, sunStatusForSegment, sunTimesForStoptimePair, sunStatusAlongRoute};
 
-import { Temporal } from '@js-temporal/polyfill';
+import { Temporal, Intl } from '@js-temporal/polyfill';
+
+const longDateFormatter = new Intl.DateTimeFormat('en-US', {
+  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+});
 
 process.on('unhandledRejection', function onError(err) {
   throw err;
@@ -440,8 +444,8 @@ function getDetailsForTrip(db, tripID, startDate, fromStop, toStop) {
   return output;
 }
 
-function formatDate(date: string): string {
-  return date.toString()
+function formatDate(date: Temporal.PlainDate): string {
+  return longDateFormatter.format(date as unknown as Date);
 }
 
 function formatMultiDayResults(results) {
