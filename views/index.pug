@@ -8,7 +8,10 @@ html
     select(id="agencyKey")
       option
       each agencyKey in agencyKeys
-        option #{agencyKey}
+        if agencyKey == agency
+          option(value=agencyKey, selected=true) #{agencyKey}
+        else
+          option #{agencyKey}
     h2 Then choose your date.
     select(id="date")
       option

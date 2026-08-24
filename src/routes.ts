@@ -43,10 +43,16 @@ app.get('/', function (req, res) { res.redirect('/trainsunthingy'); })
 app.get('/trainsunthingy', function (req, res) {
   const agencyKeys = Array.from(dbMap.keys());
   console.log("agencyKeys: " + agencyKeys)
+  var thisAgency = undefined;
+  if (req.query.agencyKey && agencyKeys.includes(req.query.agencyKey)) {
+    thisAgency = req.query.agencyKey;
+  }
+  console.log("Agency should be set to " + thisAgency);
   return res.render('index', {
     title: 'Train sun thingy',
     mapsKey: config.mapsKey,
-    agencyKeys: agencyKeys
+    agencyKeys: agencyKeys,
+    agency: thisAgency,
   });
 })
 
