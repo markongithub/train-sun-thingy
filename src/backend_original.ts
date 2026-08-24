@@ -499,8 +499,8 @@ function debugVerdict(
 
 function getServicesForDate(db, dateObj: Temporal.PlainDate): string[] {
   const dateYYYYMMDD = plainDateToYYYYMMDD(dateObj);
-  const dayOfWeekLC = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday',
-    'friday', 'saturday'][dateObj.dayOfWeek - 1];
+  const dayOfWeekLC = ['monday', 'tuesday', 'wednesday', 'thursday',
+    'friday', 'saturday', 'sunday'][dateObj.dayOfWeek - 1];
   console.log("dateYYYYMMDD: " + dateYYYYMMDD + ", dayOfWeekLC: " + dayOfWeekLC);
   const servicesNormal = db
     .prepare(
